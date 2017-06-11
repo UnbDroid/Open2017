@@ -3,7 +3,9 @@
 import cv2
 import numpy as np
 
+
 #_______________________________________________________________________________________________________________________________
+
 def mouse(e, x, y, flags, param):
 	global GT
 	
@@ -19,7 +21,7 @@ def mouse(e, x, y, flags, param):
 		cv2.imshow("%03dGT" %(num), GT)
 
 #________________________________________________________________________________________________________________________
-#Function to isolate the name passed (taking of any .jpg, or address before '/')
+	#Function to isolate the name passed (taking off any .jpg, or address before '/')
 def GetRawName(name):
 	bar = 1
 	dot = 1
@@ -32,20 +34,20 @@ def GetRawName(name):
 
 #________________________________________________________________________________________________________________________
 
-#Main
-for num in range(input("First picture: "), input("Last picture: ") +1):
+def main():
+	for num in range(input("First picture: "), input("Last picture: ") +1):
 
-#Image reading
-	#imgName = raw_input("Image name: ")
-	img = cv2.imread("src/%03d.jpg" %(num))
-	#name = GetRawName(imgName)
+        #Image reading
+        #imgName = raw_input("Image name: ")
+        img = cv2.imread("src/%03d.jpg" %(num))
+        #name = GetRawName(imgName)
 
-#Imagem Ground Truth
-	height = img.shape[0]
-	width = img.shape[1]
-	GT = np.zeros((height, width, 3))
+        #Ground Truth image
+        height = img.shape[0]
+        width = img.shape[1]
+        GT = np.zeros((height, width, 3))
 
-#Windows
+        #Windows
 	cv2.namedWindow("%03dGT" %(num))
 	cv2.imshow("%03dGT" %(num), GT)
 
@@ -54,7 +56,7 @@ for num in range(input("First picture: "), input("Last picture: ") +1):
 	cv2.setMouseCallback("%03d"%(num), mouse)
 
 
-#Analysis
+        #Analysis
 	print("Left mouse button for cow body points, right mouse button for cow legs points.\nPress 'esc' to end the process, and any other button to go to next image")
 	key = cv2.waitKey(0)	
 	if key == 27:  #esc
@@ -62,3 +64,5 @@ for num in range(input("First picture: "), input("Last picture: ") +1):
 
 	cv2.imwrite('GT/%03d_GT.png' %(num), GT)
 	cv2.destroyAllWindows()
+
+main()
