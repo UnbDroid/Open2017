@@ -7,8 +7,8 @@ import numpy as np
 #_______________________________________________________________________________________________________________________________
 
 def mouse(e, x, y, flags, param):
-	global GT
-	
+	GT = param[0]
+	num = param[1]
 
 	if e == cv2.EVENT_LBUTTONDOWN:
 		print ("X = %d  Y = %d"%(x, y))
@@ -36,29 +36,28 @@ def GetRawName(name):
 
 def main():
 	for num in range(input("First picture: "), input("Last picture: ") +1):
+		#Image Loading
+		#imgName = raw_input("Image name: ")
+		img = cv2.imread("src/%03d.png" %(num))
+		#name = GetRawName(imgName)
 
-        #Image Loading
-        #imgName = raw_input("Image name: ")
-        img = cv2.imread("src/%03d.png" %(num))
-        #name = GetRawName(imgName)
+		#Ground Truth Image
+		height = img.shape[0]
+		width = img.shape[1]
+		GT = np.zeros((height, width, 3))
 
-        #Ground Truth Image
-        height = img.shape[0]
-        width = img.shape[1]
-        GT = np.zeros((height, width, 3))
-
-        #Creating Windows
+		#Creating Windows
 		cv2.namedWindow("%03dGT" %(num))
 		cv2.imshow("%03dGT" %(num), GT)
 
 		cv2.namedWindow("%03d"%(num), cv2.WINDOW_NORMAL)
 		cv2.imshow("%03d"%(num), img)
-		cv2.setMouseCallback("%03d"%(num), mouse)
+		cv2.setMouseCallback("%03d"%(num), mouse, [GT, num])
 
-	    #Analysis
+		#Analysis
 		print("Left mouse button for cow body points, right mouse button for cow legs points.\nPress 'esc' to end the process, and any other button to go to next image")
 		key = cv2.waitKey(0)	
-		if key == 27:  #esc
+		if key & 0xFF == 27:  #esc
 			break
 
 		cv2.imwrite('GT/%03d_GT.png' %(num), GT)
