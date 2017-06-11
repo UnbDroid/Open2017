@@ -18,7 +18,7 @@ def mouse(e, x, y, flags, param):
 		cv2.imshow("%03dGT" % num, GT)
 
 #________________________________________________________________________________________________________________________
-	#Function to isolate the name passed (taking of any .jpg, or address before '/')
+	#Function to isolate the name passed (taking off any .jpg, or address before '/')
 def GetRawName(name):
 	bar = 1
 	dot = 1
@@ -34,17 +34,17 @@ def GetRawName(name):
 def main():
 	for num in range(input("Primeira foto: "), input("Ultima foto: ") +1):
 
-			#Leitura da imagem
+		#Image Read
 		#imgName = raw_input("Nome da imagem: ")
 		img = cv2.imread("src/%d.jpg" %(num))
 		#name = GetRawName(imgName)
 
-			#Imagem Ground Truth
+		#Ground Truth Image
 		height = img.shape[0]
 		width = img.shape[1]
 		GT = np.zeros((height, width, 3))
 
-			#Janelas
+		#Create windows
 		cv2.namedWindow("%dGT" %(num))
 		cv2.imshow("%dGT" %(num), GT)
 
@@ -53,7 +53,7 @@ def main():
 		cv2.setMouseCallback("%d"%(num), mouse)
 
 
-			#Analises
+		#Analysis
 		print("Press 'l' to analyze the legs, 'b' to analyze the body, 'enter' to end analyzing the image, and 'esc' to end the process")
 		key = 98
 		key = cv2.waitKey(0)
@@ -61,6 +61,7 @@ def main():
 		
 		if key == 27:  #esc
 			break
+
 		while ((key==98)or(key==108)):
 			key = cv2.waitKey(0)
 			print key
