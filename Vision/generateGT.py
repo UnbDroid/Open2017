@@ -36,7 +36,7 @@ def main():
 
 		#Image Read
 		#imgName = raw_input("Nome da imagem: ")
-		img = cv2.imread("src/%d.jpg" %(num))
+		img = cv2.imread('./src/%03d.png' % num)
 		#name = GetRawName(imgName)
 
 		#Ground Truth Image
@@ -45,12 +45,12 @@ def main():
 		GT = np.zeros((height, width, 3))
 
 		#Create windows
-		cv2.namedWindow("%dGT" %(num))
-		cv2.imshow("%dGT" %(num), GT)
-
-		cv2.namedWindow("%d"%(num), cv2.WINDOW_NORMAL)
-		cv2.imshow("%d"%(num), img)
-		cv2.setMouseCallback("%d"%(num), mouse)
+		cv2.namedWindow("%03dGT" % num)
+		cv2.imshow("%03dGT" % num , GT)
+ 
+		cv2.namedWindow("%03d" % num, cv2.WINDOW_NORMAL)
+		cv2.imshow("%03d" % num, img)
+		cv2.setMouseCallback("%03d" % num, mouse)
 
 
 		#Analysis
@@ -69,7 +69,7 @@ def main():
 		if key == 27:  #esc
 			break
 
-		cv2.imwrite('GT/%s_GT.png' %(num), GT)
+		cv2.imwrite('GT/%03d_GT.png' % num, GT)
 		cv2.destroyAllWindows()
 
 main()
