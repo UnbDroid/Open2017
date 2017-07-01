@@ -222,10 +222,10 @@ int main( int argc, char** argv ){
            ysup = m*vsd[l].x+a;
 
            //Verifica retangulo L pertence a vaca, considerando a hipotese que o retangulo K é da vaca
-           if (vsd[l].x>vsd[k].x //Se retangulo l esta a direita de k
+           if (vsd[l].x>=vsd[k].x //Se retangulo l esta a direita de k
              &&vsd[l].x<deltaX   //E dentro da largura da vaca
              &&vsd[l].y>ysup-10  //E se retangulo l esta dentro da altura maxima da vaca
-             &&vsd[l].y<ysup+2*altura){ //E se retangulo l esta dentro da altura minima da vaca
+             &&vsd[l].y<ysup+3*(altura/2)){ //E se retangulo l esta dentro da altura minima da vaca
 
                //Calcula coeficiente angular do retangulo L
                double m2 = (vse[l].y-vsd[l].y)/(vse[l].x-vsd[l].x);
@@ -250,6 +250,12 @@ int main( int argc, char** argv ){
     //Desenha
     Point2f pt2;
     if (max>3){
+      //Desenha X azul nos quadrados dentro da vaca
+      for (int j=0;j<max;j++){
+        line(tempBlackWhite, vse[quadradosDentro[marcador][j]], vid[quadradosDentro[marcador][j]], Scalar (255, 100, 0), 2, 8 );
+        line(tempBlackWhite, vsd[quadradosDentro[marcador][j]], vie[quadradosDentro[marcador][j]], Scalar (255, 100, 0), 2, 8 );
+      }
+
       //Desenha Retangulo superior direita da lateral da vaca
       line(tempBlackWhite, vse[marcador], vie[marcador], Scalar (255, 255, 0), 2, 8 );
       line(tempBlackWhite, vie[marcador], vid[marcador], Scalar (255, 255, 0), 2, 8 );
