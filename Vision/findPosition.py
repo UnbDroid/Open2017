@@ -16,7 +16,9 @@ def findPos(line1size, line2size, realHeight1, realHeight2, px1, px2, xcenter):	
 	x1 = (z1*(px1-xcenter)/FOCAL_DIST)-X1_CENTER_ERROR
 	x2 = (z2*(px2-xcenter)/FOCAL_DIST)-X2_CENTER_ERROR
 	dist = pow( pow(z1-z2, 2) + pow(x1-x2, 2) , 0.5)
-	return z1, z2, x1, x2, dist 		#It returns the position of both vertical lines in the world (in depth z and in the horizontal x axis), and the distance between those lines
+	ang1 = np.tan(x1/z1)
+	ang2 = np.tan(x2/z2)
+	return z1, x1, ang1, z2, x2, ang2, dist 		#It returns the position of both vertical lines in the world (in depth z and in the horizontal x axis), and the distance between those lines
 
 
 #________________________________________________________________________________________________________________________________________
@@ -53,7 +55,7 @@ def main():
 		if key == 13:	#Press enter to stop the video in the desired frame, and analise that position of the cow
 			cv2.waitKey(0)
 			if count%4==0:		#Test the funtion findPos every time there's 4 points selected (2 lines)
-				z1, z2, x1, x2, dist = findPos(pow(pow(pointy[count-4]-pointy[count-3], 2) + pow(pointx[count-4]-pointx[count-3], 2), 0.5), pow(pow(pointy[count-2]-pointy[count-1], 2) + pow(pointx[count-2]-pointx[count-1], 2), 0.5), 10, 10, (pointx[count-3]+pointx[count-4])/2, (pointx[count-1]+pointx[count-2])/2, frame.shape[0]/2)
-				print z1, x1, z2, x2
+				z1, x1, ang1, z2, x2, ang2, dist = findPos(pow(pow(pointy[count-4]-pointy[count-3], 2) + pow(pointx[count-4]-pointx[count-3], 2), 0.5), pow(pow(pointy[count-2]-pointy[count-1], 2) + pow(pointx[count-2]-pointx[count-1], 2), 0.5), 10, 10, (pointx[count-3]+pointx[count-4])/2, (pointx[count-1]+pointx[count-2])/2, frame.shape[0]/2)
+				print z1, x1, ang1, z2, x2, ang2
 				print dist
 main()
