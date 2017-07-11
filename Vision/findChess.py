@@ -64,8 +64,7 @@ def main():
 	else:
 		cam = 1
 		cap = cv2.VideoCapture(0)
-
-	
+		cap.set(cv2.CAP_PROP_FPS, 1)
 
 	cv2.namedWindow('Parameters')
 	cv2.createTrackbar('Template Size', 'Parameters', 4, 20, nothing)
@@ -212,7 +211,7 @@ def main():
 		cv2.imshow('hits filtered', disp_filtered)
 
 
-		if cv2.waitKey(20) & 0xFF == 27:
+		if cv2.waitKey(1) & 0xFF == 27:
 			break
 
 
