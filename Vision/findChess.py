@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import sys
 import os
+import time
 
 def nothing(x):
 	pass
@@ -50,21 +51,35 @@ def findChess(intImg, templateSize):
 	return chess
 
 def main():
-	src = cv2.imread('src/' + sys.argv[1] + '.png')
+	if(len(sys.argv) > 1):
+		cam = 0
+		src = cv2.imread('src/' + sys.argv[1] + '.png')
 
-	if(src is None):
-		print 'Error loading image'
-		print 'Use $ python findChess.py <image_number>'
-		print 'Example: $ python findChess.py 001'
-		return -1
+		if(src is None):
+			print 'Error loading image'
+			print 'Use $ python findChess.py <image_number>'
+			print 'Example: $ python findChess.py 001'
+			print 'To use a webcam, try: $ python findChess.py'
+			return -1
+	else:
+		cam = 1
+		cap = cv2.VideoCapture(0)
 
-	img = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
+	
 
 	cv2.namedWindow('Parameters')
-	cv2.createTrackbar('Threshold', 'Parameters', 750, 1000, nothing)
 	cv2.createTrackbar('Template Size', 'Parameters', 4, 20, nothing)
 
 	while(True):
+		begin = time.time()
+		
+		if(cam):
+			ret, src = cap.read()
+			if(src is None):
+				print 'Cam error'
+				return -1
+
+		img = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
 		templateSize = cv2.getTrackbarPos('Template Size', 'Parameters')
 
 		if(templateSize % 2 != 0):
@@ -87,33 +102,35 @@ def main():
 		minVal, maxVal1, minLoc, maxLoc = cv2.minMaxLoc(chess1)
 		minVal, maxVal2, minLoc, maxLoc = cv2.minMaxLoc(chess2)
 
-		thresh = 0.001*cv2.getTrackbarPos('Threshold', 'Parameters')
-		thresh1 = thresh*maxVal1
-		thresh2 = thresh*maxVal2
+		thresh = 101
+		npoints = 0
+		while(npoints < 20):
+			thresh = thresh - 1
+			threshdec = 0.01*thresh
+			thresh1 = threshdec*maxVal1
+			thresh2 = threshdec*maxVal2
+			
+			ret, binarychess1 = cv2.threshold(chess1, thresh1, 255, cv2.THRESH_BINARY)
+			ret, binarychess2 = cv2.threshold(chess2, thresh2, 255, cv2.THRESH_BINARY)
+
+			binarychess1 = np.uint8(binarychess1)
+			binarychess2 = np.uint8(binarychess2)
+
+			hits1 = cv2.bitwise_and(binarychess1, localMax1)
+			hits2 = cv2.bitwise_and(binarychess2, localMax2)
+
+			points_mtx = cv2.bitwise_or(hits1, hits2)
+
+			points_found = np.where(points_mtx)
+
+			npoints = np.shape(points_found)[1]
+
 		
-		ret, binarychess1 = cv2.threshold(chess1, thresh1, 255, cv2.THRESH_BINARY)
-		ret, binarychess2 = cv2.threshold(chess2, thresh2, 255, cv2.THRESH_BINARY)
-		
-		binarychess1 = np.uint8(binarychess1)
-		binarychess2 = np.uint8(binarychess2)
-
-		hits1 = cv2.bitwise_and(binarychess1, localMax1)
-		hits2 = cv2.bitwise_and(binarychess2, localMax2)
-
-		points_mtx = cv2.bitwise_or(hits1, hits2)
-
-		points_found = np.where(points_mtx)
-
-		npoints = np.shape(points_found)[1]
-
-		print 'Points found:'
-		print npoints
-
 		disp = np.copy(src)
 		disp_filtered = np.copy(src)
 
 		for i in xrange(npoints):
-			cv2.circle(disp, (points_found[1][i], points_found[0][i]), 10, (0, 0, 255), thickness = 2)
+			cv2.circle(disp, (points_found[1][i]+templateSize/2, points_found[0][i]+templateSize/2), 10, (0, 0, 255), thickness = 2)
 
 		done = 0
 		for i in xrange(npoints):
@@ -143,43 +160,50 @@ def main():
 					pointsaligned = (epsilon < 0.05)
 					score = np.sum(pointsaligned)
 
-					candidatepointsindex = np.where(pointsaligned)[0]
-					candidatepointsindex[candidatepointsindex >= i] += 1
-					candidatepointsindex = np.append(i, candidatepointsindex)
-					candidatepoints = [points_found[0][candidatepointsindex], points_found[1][candidatepointsindex]]
-					
-					ncandidates = np.size(candidatepointsindex)
-					mindist = np.zeros(ncandidates)
-					maxdist = np.zeros(ncandidates)
+					if(score >= 4):
+						candidatepointsindex = np.where(pointsaligned)[0]
+						candidatepointsindex[candidatepointsindex >= i] += 1
+						candidatepointsindex = np.append(i, candidatepointsindex)
+						candidatepoints = [points_found[0][candidatepointsindex], points_found[1][candidatepointsindex]]
 
-					for t in xrange(ncandidates):
-						dist = ((candidatepoints[1]-candidatepoints[1][t])**2+(candidatepoints[0]-candidatepoints[0][t])**2)**0.5
-						mindist[t] = np.amin(dist[dist != 0])
-						maxdist[t] = np.amax(dist)
+						ncandidates = np.size(candidatepointsindex)
+						mindist = np.zeros(ncandidates)
+						maxdist = np.zeros(ncandidates)
 
-					line_width = np.amax(maxdist)
-					square_width = np.mean(mindist)
+						dist = np.zeros((ncandidates, ncandidates))
 
-					ratio = line_width/square_width
+						for t in xrange(ncandidates):
+							dist[t] = ((candidatepoints[1]-candidatepoints[1][t])**2+(candidatepoints[0]-candidatepoints[0][t])**2)**0.5
+							mindist[t] = np.amin(dist[dist != 0])
+							maxdist[t] = np.amax(dist)
 
-					if(score >= 4 and np.isclose(ratio, 4, atol=0.1)):
-						truepoints = [points_found[0][candidatepointsindex], points_found[1][candidatepointsindex]]
+						line_width = np.amax(maxdist)
+						square_width = np.mean(mindist)
 
-						print 'Distances to the nearest neighbour point:'
-						print mindist
-						print 'Distances to the farthest point:'
-						print maxdist
-						print 'All Points Checked:'
-						print truepoints[1]
-						print truepoints[0]
+						ratio = line_width/square_width
 
-						npointsfiltered = np.shape(truepoints)[1]
-						for w in xrange(npointsfiltered):
-							cv2.circle(disp_filtered, (truepoints[1][w], truepoints[0][w]), 10, (0, 0, 255), thickness = 2)
-						
-						done = 1
-						break
-					
+						if(np.isclose(ratio, 4, atol=0.1)):
+							truepoints = [points_found[0][candidatepointsindex], points_found[1][candidatepointsindex]]
+							#print 'Distances matrix:'
+							#print dist
+							#print 'Distances to the nearest neighbour point:'
+							#print mindist
+							#print 'Distances to the farthest point:'
+							#print maxdist
+							#print 'All Points Checked:'
+							#print truepoints[1]
+							#print truepoints[0]
+
+							npointsfiltered = np.shape(truepoints)[1]
+							for w in xrange(npointsfiltered):
+								cv2.circle(disp_filtered, (truepoints[1][w]+templateSize/2, truepoints[0][w]+templateSize/2), 10, (0, 0, 255), thickness = 2)
+							
+							done = 1
+							break
+		exetime = (time.time()-begin)
+		exefreq = 1/exetime
+		os.system('clear')
+		print 'Code frequency: %.1f' % exefreq			
 
 		#cv2.imshow('src', src)
 		#cv2.imshow('chess1', cv2.convertScaleAbs(chess1))
@@ -187,7 +211,6 @@ def main():
 		cv2.imshow('hits', disp)
 		cv2.imshow('hits filtered', disp_filtered)
 
-		os.system('clear')
 
 		if cv2.waitKey(20) & 0xFF == 27:
 			break
