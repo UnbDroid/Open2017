@@ -68,8 +68,10 @@ def main():
 
 	cv2.namedWindow('Parameters')
 	cv2.createTrackbar('Template Size', 'Parameters', 4, 20, nothing)
+	cv2.createTrackbar('Number of Points', 'Parameters', 15, 30, nothing)
 
 	while(True):
+		os.system('clear')
 		begin = time.time()
 		
 		if(cam):
@@ -79,6 +81,11 @@ def main():
 				return -1
 
 		img = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
+		
+		camtime = time.time()
+		tmp = 1000*(camtime-begin)
+		print 'Frame acquisition time: %.2f ms' % tmp
+
 		templateSize = cv2.getTrackbarPos('Template Size', 'Parameters')
 
 		if(templateSize % 2 != 0):
@@ -89,22 +96,43 @@ def main():
 		template1 = createTemplate(templateSize)
 		template2 = cv2.flip(template1, 0)
 
+		temptime = time.time()
+		tmp = 1000*(temptime-camtime)
+		print 'Template creation time: %.2f ms' % tmp
+
 		chess1 = cv2.matchTemplate(img.astype(np.float32), template1, cv2.TM_CCORR)
 		chess2 = cv2.matchTemplate(img.astype(np.float32), template2, cv2.TM_CCORR)
+
+		matchtime = time.time()
+		tmp = 1000*(matchtime-temptime)
+		print 'Template match time: %.2f ms' % tmp
 
 		dil1 = cv2.dilate(chess1, np.ones((3,3)))
 		dil2 = cv2.dilate(chess2, np.ones((3,3)))
 
+		diltime = time.time()
+		tmp = 1000*(diltime-temptime)
+		print 'Dilation time: %.2f ms' % tmp
+
 		localMax1 = cv2.compare(chess1, dil1, cv2.CMP_EQ)
 		localMax2 = cv2.compare(chess2, dil2, cv2.CMP_EQ)
+
+		comptime = time.time()
+		tmp = 1000*(comptime-diltime)
+		print 'Local maxima comparison time: %.2f ms' % tmp
 
 		minVal, maxVal1, minLoc, maxLoc = cv2.minMaxLoc(chess1)
 		minVal, maxVal2, minLoc, maxLoc = cv2.minMaxLoc(chess2)
 
-		thresh = 101
+		maxvaltime = time.time()
+		tmp = 1000*(maxvaltime-comptime)
+		print 'Maximum value calculation time: %.2f ms' % tmp
+
+		thresh = 100
 		npoints = 0
-		while(npoints < 20):
-			thresh = thresh - 1
+		ptsqnty = cv2.getTrackbarPos('Number of Points', 'Parameters')
+		while(npoints < ptsqnty):
+			thresh = thresh - 5
 			threshdec = 0.01*thresh
 			thresh1 = threshdec*maxVal1
 			thresh2 = threshdec*maxVal2
@@ -124,12 +152,19 @@ def main():
 
 			npoints = np.shape(points_found)[1]
 
-		
+		ptstime = time.time()
+		tmp = 1000*(ptstime-maxvaltime)
+		print 'Finding points time: %.2f ms' % tmp
+
 		disp = np.copy(src)
 		disp_filtered = np.copy(src)
 
 		for i in xrange(npoints):
 			cv2.circle(disp, (points_found[1][i]+templateSize/2, points_found[0][i]+templateSize/2), 10, (0, 0, 255), thickness = 2)
+
+		drawptstime = time.time()
+		tmp = 1000*(drawptstime-ptstime)
+		print 'Drawing found points time: %.2f ms' % tmp
 
 		done = 0
 		for i in xrange(npoints):
@@ -159,7 +194,7 @@ def main():
 					pointsaligned = (epsilon < 0.05)
 					score = np.sum(pointsaligned)
 
-					if(score >= 4):
+					if(score >= 4 and abs(angcoef[k]) < 0.25): # check if condition is working
 						candidatepointsindex = np.where(pointsaligned)[0]
 						candidatepointsindex[candidatepointsindex >= i] += 1
 						candidatepointsindex = np.append(i, candidatepointsindex)
@@ -172,17 +207,48 @@ def main():
 						dist = np.zeros((ncandidates, ncandidates))
 
 						for t in xrange(ncandidates):
-							dist[t] = ((candidatepoints[1]-candidatepoints[1][t])**2+(candidatepoints[0]-candidatepoints[0][t])**2)**0.5
-							mindist[t] = np.amin(dist[dist != 0])
-							maxdist[t] = np.amax(dist)
+								dist[t] = ((candidatepoints[1]-candidatepoints[1][t])**2+(candidatepoints[0]-candidatepoints[0][t])**2)**0.5
+								tmp = dist[t]
+								mindist[t] = np.amin(tmp[tmp != 0])
+								maxdist[t] = np.amax(dist[t])
 
-						line_width = np.amax(maxdist)
-						square_width = np.mean(mindist)
+						while(ncandidates > 5):
+							far_index = np.argmax(mindist)
+							candidatepointsindex = np.delete(candidatepointsindex, far_index)
+							mindist = np.delete(mindist, far_index)
+							maxdist = np.delete(maxdist, far_index)
+							candidatepoints = np.delete(candidatepoints, far_index, 1)
+							ncandidates = np.size(candidatepointsindex)
 
-						ratio = line_width/square_width
+						dist = np.zeros((ncandidates, ncandidates))
+
+						for t in xrange(ncandidates):
+								dist[t] = ((candidatepoints[1]-candidatepoints[1][t])**2+(candidatepoints[0]-candidatepoints[0][t])**2)**0.5
+								#print dist[t]
+								tmp = dist[t]
+								mindist[t] = np.amin(tmp[tmp != 0])
+								maxdist[t] = np.amax(dist[t])
+
+						linewidth = np.amax(maxdist)
+						squarewidth = np.mean(mindist)
+						ratio = linewidth/squarewidth
 
 						if(np.isclose(ratio, 4, atol=0.1)):
 							truepoints = [points_found[0][candidatepointsindex], points_found[1][candidatepointsindex]]
+
+							for w in xrange(ncandidates):
+								cv2.circle(disp_filtered, (truepoints[1][w]+templateSize/2, truepoints[0][w]+templateSize/2), 10, (0, 0, 255), thickness = 2)
+								
+							done = 1
+							break
+
+						#line_width = np.amax(maxdist)
+						#square_width = np.mean(mindist)
+
+						#ratio = line_width/square_width
+
+						#if(np.isclose(ratio, 4, atol=0.1)):
+						#	truepoints = [points_found[0][candidatepointsindex], points_found[1][candidatepointsindex]]
 							#print 'Distances matrix:'
 							#print dist
 							#print 'Distances to the nearest neighbour point:'
@@ -193,15 +259,17 @@ def main():
 							#print truepoints[1]
 							#print truepoints[0]
 
-							npointsfiltered = np.shape(truepoints)[1]
-							for w in xrange(npointsfiltered):
-								cv2.circle(disp_filtered, (truepoints[1][w]+templateSize/2, truepoints[0][w]+templateSize/2), 10, (0, 0, 255), thickness = 2)
+						#	npointsfiltered = np.shape(truepoints)[1]
+						#	for w in xrange(npointsfiltered):
+						#		cv2.circle(disp_filtered, (truepoints[1][w]+templateSize/2, truepoints[0][w]+templateSize/2), 10, (0, 0, 255), thickness = 2)
 							
-							done = 1
-							break
+						#	done = 1
+						#	break
 		exetime = (time.time()-begin)
 		exefreq = 1/exetime
-		os.system('clear')
+		filtertime = time.time()
+		tmp = 1000*(filtertime-drawptstime)
+		print 'Filtering points time: %.2f ms' % tmp
 		print 'Code frequency: %.1f' % exefreq			
 
 		#cv2.imshow('src', src)
