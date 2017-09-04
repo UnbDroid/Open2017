@@ -32,7 +32,7 @@ int main( int argc, char** argv ){
   //Calcula tempo de execução
   //CvCapture* cam;
   //cam = cvCreateCameraCapture( 1 );
-  VideoCapture cam ("/home/iduarte/Downloads/CowVid1.avi");
+  VideoCapture cam("/home/iduarte/Downloads/CowVid1.avi");
   //if(!cam) {printf("Impossível abrir camera\n"); return -1;}
   if(!cam.isOpened()) {printf("Impossível abrir camera\n"); return -1;}
   struct timeval tempo1, tempo2;
@@ -83,7 +83,7 @@ int main( int argc, char** argv ){
 
     //Converte para BGR
     cvtColor(cie,src,CV_Lab2BGR);
-cie2 = src.clone();
+    cie2 = src.clone();
     namedWindow ("Equalizada", CV_WINDOW_NORMAL);
 		imshow( "Equalizada", src );
 
