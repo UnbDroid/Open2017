@@ -1,4 +1,5 @@
 #include "roscom.h"
+#include "MotorsEnc.h"
 
 void messageInt32Cb( const arduino_msgs::StampedInt32& r_int32_msg)
 {   
