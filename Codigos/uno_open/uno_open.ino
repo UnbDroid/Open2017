@@ -11,6 +11,7 @@ void messageFloat32Cb( const arduino_msgs::StampedFloat32& r_float32_msg)
 
 void setup()
 {
+  SetupInterrupt();
   initializeROS();
   pinMode(LED_BUILTIN, OUTPUT);
 }
