@@ -37,7 +37,8 @@ void position (float line1size, float line2size, float px1, float px2);
 
 int main( int argc, char** argv ){
   //Calcula tempo de execução
-  VideoCapture cam ("CowVid1.avi");
+  //VideoCapture cam ("CowVid1.avi");
+  VideoCapture cam (1);
   if(!cam.isOpened()) {printf("Impossível abrir camera\n"); return -1;}
 
   struct timeval tempo1, tempo2;
@@ -229,7 +230,7 @@ void CowRect(int, void*)
         }
       }
    //*Desenha 'X' vermelho nos retangulos
-   /*
+   //*
    for (int k = 0; k<vsd.size() ; k++){
      Scalar color = Scalar( 0, 100, 150);
      line(matprocessado, vsd[k], vie[k], color, 1, 8 );
@@ -304,8 +305,6 @@ void CowRect(int, void*)
   Point2f pt2;
   if (max>3){
     Scalar color = Scalar (rng.uniform(0,255),rng.uniform(0,255),rng.uniform(0,255));
-    //line(matxisdavaca, vsd[marcador], vie[marcador], color, 1, 8 );
-    //line(matxisdavaca, vse[marcador], vid[marcador], color, 1, 8 );
 
     m = (vse[marcador].y-vsd[marcador].y)/(vse[marcador].x-vsd[marcador].x);//Calcula coeficiente angular do retangulo K
     a = vsd[marcador].y-vsd[marcador].x*m;//Calcula coeficiente linear do retangulo K
@@ -335,15 +334,6 @@ void CowRect(int, void*)
 
     ysup = m*vsd[marcador].x+a;
 
-    Point2f alpha, beta;
-    alpha.x = deltaX;
-    alpha.y = ysup;
-    beta.x = vse[marcador].x;
-    beta.y = float (ysup+altura*1.3);
-
-    //line(tempBlackWhite, vse[marcador], vsd[marcador], Scalar ((tipo-4)*50, (tipo-4)*50, (tipo-4)*50), 1, 8 );
-    //line(tempBlackWhite, vse[marcador], vie[marcador], Scalar ((tipo-4)*50, (tipo-4)*50, (tipo-4)*50), 1, 8 );
-
     int contador = 1, supcontador = 1;
     float sumx, sumxsq, sumy, sumxy, a0, a1, denom, supsumx, supsumxsq, supsumy, supsumxy, supa0, supa1;
 
@@ -352,13 +342,6 @@ void CowRect(int, void*)
     supsumy = vsd[marcador].y;
     supsumxy = vsd[marcador].x * vsd[marcador].y;
 
-    /*
-    sumx = vid[marcador].x;
-    sumxsq = pow(vid[marcador].x, 2);
-    sumy = vid[marcador].y;
-    sumxy = vid[marcador].x * vid[marcador].y;
-    //*/
-
     for (int l = 0; l<retangulosVaca.size() ; l++){
         line(tempBlackWhite, vsd[retangulosVaca[l]], vid[retangulosVaca[l]], Scalar (55, 250, 25), 1, 8 );
         if (abs(comparacao-vsd[retangulosVaca[l]].x)<mindiferenca){
@@ -366,51 +349,17 @@ void CowRect(int, void*)
           minmarcador = retangulosVaca[l];
         }
         if (abs(vse[retangulosVaca[l]].y-vse[marcador].y)<altura){
-          /*
-          sumx += vid[retangulosVaca[l]].x;
-          sumxsq += pow(vid[retangulosVaca[l]].x, 2);
-          sumy += vid[retangulosVaca[l]].y;
-          sumxy += vid[retangulosVaca[l]].x * vid[retangulosVaca[l]].y;
-          //*/
           supsumx += vsd[retangulosVaca[l]].x;
           supsumxsq += pow(vsd[retangulosVaca[l]].x, 2);
           supsumy += vsd[retangulosVaca[l]].y;
           supsumxy += vsd[retangulosVaca[l]].x * vsd[retangulosVaca[l]].y;
           supcontador++;
         }
-        /*
-        else {
-          sumx += vsd[l].x;
-          sumxsq += pow(vsd[retangulosVaca[l]].x, 2);
-          sumy += vsd[l].y;
-          sumxy += vsd[l].x * vsd[l].y;
-        }
-        //*/
         contador++;
     }
-
-    /*
-    denom = contador * sumxsq - pow(sumx, 2);
-    a1 = (contador * sumxy - sumx*sumy)/denom;
-    a0 = (sumy - a1*sumx)/contador;
-    //*/
     denom = supcontador * supsumxsq - pow(supsumx, 2);
     supa1 = (supcontador * supsumxy - supsumx*supsumy)/denom;
     supa0 = (supsumy - supa1*supsumx)/supcontador;
-
-
-    Point2f teste1, teste2;
-    teste1.x = 10;
-    teste1.y = 10*supa1+supa0;
-    teste2.x = 300;
-    teste2.y = 300*supa1+supa0;
-    line(tempBlackWhite,teste1, teste2, Scalar (250, 250, 250), 1, 8 );
-    teste1.x = 10;
-    teste1.y = 10*a1+a0;
-    teste2.x = 300;
-    teste2.y = 300*a1+a0;
-    line(tempBlackWhite,teste1, teste2, Scalar (50, 250, 250), 1, 8 );
-    imshow( "Outpu2t",tempBlackWhite);
 
     float porcentagem = 0.8;
 
@@ -420,21 +369,9 @@ void CowRect(int, void*)
       pt1linha1.y = pt1linha1.y*(1-porcentagem)+porcentagem*(vsd[marcador].x*supa1+supa0);
       pt2linha1.x = pt2linha1.x*(1-porcentagem)+porcentagem*vid[marcador].x;
       pt2linha1.y = pt2linha1.y*(1-porcentagem)+porcentagem*(vid[marcador].y);//*a1+a0);
-      //*/
 
       //Verificação Not a Number
-      //*
-      if (pt1linha1.x!=pt1linha1.x)//*/
-              pt1linha1.x = vsd[marcador].x;
-      //*
-      if (pt1linha1.y!=pt1linha1.y)//*/
-              pt1linha1.y = vsd[marcador].y;//x*supa1+supa0;
-      //*
-      if (pt2linha1.x!=pt2linha1.x)//*/
-              pt2linha1.x = vid[marcador].x;
-      //*
-      if (pt2linha1.y!=pt2linha1.y)//*/
-              pt2linha1.y = vid[marcador].y;//x*a1+a0;
+      if (pt1linha1.y!=pt1linha1.y) pt1linha1.y = vsd[marcador].y;
     }
     else{
       //*
@@ -443,19 +380,9 @@ void CowRect(int, void*)
       pt2linha1.x = pt2linha1.x*(1-porcentagem)+porcentagem*vie[marcador].x;
       pt2linha1.y = pt2linha1.y*(1-porcentagem)+porcentagem*(vie[marcador].y);//x*a1+a0);
       //*/
+
       //Verificação Not a Number
-      //*
-      if (pt1linha1.x!=pt1linha1.x)//*/
-        pt1linha1.x = vse[marcador].x;
-      //*
-      if (pt1linha1.y!=pt1linha1.y)//*/
-        pt1linha1.y = vse[marcador].x*supa1+supa0;
-      //*
-      if (pt2linha1.x!=pt2linha1.x)//*/
-        pt2linha1.x = vie[marcador].x;
-      //*
-      if (pt2linha1.y!=pt2linha1.y)//*/
-        pt2linha1.y = vie[marcador].x*a1+a0;
+      if (pt1linha1.y!=pt1linha1.y) pt1linha1.y = vse[marcador].x*supa1+supa0;
     }
 
     line(tempBlackWhite, pt1linha1, pt2linha1, Scalar (0, 20, 255), 2, 8 );
@@ -463,28 +390,16 @@ void CowRect(int, void*)
     pt1linha2.x = pt1linha2.x*(1-porcentagem)+porcentagem*vsd[minmarcador].x;
     pt1linha2.y = pt1linha2.y*(1-porcentagem)+porcentagem*(vsd[minmarcador].x*supa1+supa0);
     pt2linha2.x = pt2linha2.x*(1-porcentagem)+porcentagem*vid[minmarcador].x;
-    pt2linha2.y = pt2linha2.y*(1-porcentagem)+porcentagem*(vid[minmarcador].y);//x*a1+a0);
+    pt2linha2.y = pt2linha2.y*(1-porcentagem)+porcentagem*(vid[minmarcador].y);
     //*/
+
     //Verificação Not a Number
-    //*
-    if (pt1linha2.x!=pt1linha2.x)//*/
-          pt1linha2.x = vsd[minmarcador].x;
-    //*
-    if (pt1linha2.y!=pt1linha2.y)//*/
-          pt1linha2.y = vsd[minmarcador].y;//x*supa1+supa0;
-    //*
-    if (pt2linha2.x!=pt2linha2.x)//*/
-          pt2linha2.x = vid[minmarcador].x;
-    //*
-    if (pt2linha2.y!=pt2linha2.y)//*/
-          pt2linha2.y = vid[minmarcador].y;//x*a1+a0;
+    if (pt1linha2.x!=pt1linha2.x) pt1linha2.x = vsd[minmarcador].x;
+    if (pt1linha2.y!=pt1linha2.y) pt1linha2.y = vsd[minmarcador].y;//x*supa1+supa0;
+    if (pt2linha2.x!=pt2linha2.x) pt2linha2.x = vid[minmarcador].x;
+    if (pt2linha2.y!=pt2linha2.y) pt2linha2.y = vid[minmarcador].y;
 
     line(tempBlackWhite, pt1linha2, pt2linha2, Scalar (0, 20, 255), 2, 8 );
-    //color = Scalar (rng.uniform(100,255),rng.uniform(100,255),rng.uniform(0,255));
-    //line(matretas, pt1linha1, pt2linha1, color, 1, 8 );
-    //line(matretas, pt1linha2, pt2linha2, color, 1, 8 );
-
-
 
     position (pt2linha1.y-pt1linha1.y, pt2linha2.y-pt1linha2.y, pt1linha1.x,pt1linha2.x);
     matfinal = tempBlackWhite.clone();
