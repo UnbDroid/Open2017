@@ -17,8 +17,8 @@ using namespace std;
 Mat src, original, matblur, gradient, matretangulos, matprocessado, matxisdavaca, matretas, matfinal, tempBlackWhite;
 vector<float> vecz1, vecx1, vecang1, vecz2, vecx2, vecang2, vecdist;
 Point2f pt1linha1(0.0,0.0), pt2linha1(0.0,0.0),pt1linha2(0.0,0.0), pt2linha2(0.0,0.0);
-float z1, x1, ang1, z2, x2, ang2, dist;
-
+float z1, x1, ang1, z2, x2, ang2, dist, err;
+float max_error = 0.2;
 
 int frame_width;
 int frame_height;
@@ -424,11 +424,28 @@ void CowRect(int, void*)
 
     line(tempBlackWhite, pt1linha2, pt2linha2, Scalar (0, 20, 255), 2, 8 );
 
-    position (pt2linha1.y-pt1linha1.y, pt2linha2.y-pt1linha2.y, pt1linha1.x,pt1linha2.x);
+    position(pt2linha1.y-pt1linha1.y, pt2linha2.y-pt1linha2.y, pt1linha1.x,pt1linha2.x);
     matfinal = tempBlackWhite.clone();
 
   }
-  imshow( "Output", tempBlackWhite);
+  
+  cout << "Error = ";
+  cout << err;
+  cout << '\n';
+  cout << "Max Error = ";
+  cout << max_error;
+  cout << '\n';
+  
+  if(err < max_error)
+  {
+    cout << "Got it!\n";
+    imshow("Output", tempBlackWhite);
+  } else {
+    cout << "Oops, didn't get it right\n";
+    cvtColor(tempBlackWhite, tempBlackWhite, CV_RGB2GRAY);
+    imshow("Output", tempBlackWhite);
+  }
+  
 }
 
 void position (float line1size, float line2size, float px1, float px2){
@@ -439,16 +456,21 @@ void position (float line1size, float line2size, float px1, float px2){
   float X2_CENTER_ERROR = X_ERROR_MI*z2 + X_ERROR_CONST;
   x1 = (z1*(px1-xcenter)/FOCAL_DIST)-X1_CENTER_ERROR;
   x2 = (z2*(px2-xcenter)/FOCAL_DIST)-X2_CENTER_ERROR;
-  dist = pow( pow(z1-z2, 2) + pow(x1-x2, 2) , 0.5)+3.0;
-  ang1 = tan(x1/z1);
-  ang2 = tan(x2/z2);
-  vecz1.push_back(z1);
-  vecx1.push_back(x1);
-  vecang1.push_back(ang1);
-  vecz2.push_back(z2);
-  vecx2.push_back(x2);
-  vecang2.push_back(ang2);
-  vecdist.push_back(dist);
+  dist = pow(pow(z1-z2, 2) + pow(x1-x2, 2) , 0.5)+3.0;
+  
+  err = abs(dist-36.0)/36.0;
+  if(err < max_error)
+  { 
+    ang1 = tan(x1/z1);
+    ang2 = tan(x2/z2);
+    vecz1.push_back(z1);
+    vecx1.push_back(x1);
+    vecang1.push_back(ang1);
+    vecz2.push_back(z2);
+    vecx2.push_back(x2);
+    vecang2.push_back(ang2);
+    vecdist.push_back(dist);
+  }
 }
 
 void savePoints (){
