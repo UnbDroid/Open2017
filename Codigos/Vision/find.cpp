@@ -81,7 +81,7 @@ int main( int argc, char** argv ){
 		//Imprime captura na tela
     
     cout << "Showing src at the 'Entrada' window...\n";
-		imshow( "Entrada", src );
+		imshow("Entrada", src);
     cout << "OK imshow worked\n";
     //Load an image
     original = src.clone();
