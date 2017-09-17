@@ -2,7 +2,8 @@
 #include "opencv2/highgui/highgui.hpp"
 #include <stdlib.h>
 #include <stdio.h>
-#include<math.h>
+#include <iostream>
+#include <math.h>
 #include <sys/time.h>
 
 //Macros:
@@ -11,6 +12,7 @@
 #define X_ERROR_CONST -0.6332	//Mathematically: error = z1*X_ERROR_MI + X_ERROR_CONSTANT
 
 using namespace cv;
+using namespace std;
 
 Mat src, original, matblur, gradient, matretangulos, matprocessado, matxisdavaca, matretas, matfinal, tempBlackWhite;
 vector<float> vecz1, vecx1, vecang1, vecz2, vecx2, vecang2, vecdist;
@@ -37,8 +39,8 @@ void position (float line1size, float line2size, float px1, float px2);
 
 int main( int argc, char** argv ){
   //Calcula tempo de execução
-  //VideoCapture cam ("CowVid1.avi");
-  VideoCapture cam (1);
+  VideoCapture cam ("CowVid1.avi");
+  //VideoCapture cam (1);
   if(!cam.isOpened()) {printf("Impossível abrir camera\n"); return -1;}
 
   struct timeval tempo1, tempo2;
@@ -60,22 +62,32 @@ int main( int argc, char** argv ){
 	{
     gettimeofday (&tempo1, NULL);
   	//Captura frame
+    cout << "Getting frame...\n";
     cam >> src;
 
-    matprocessado =src.clone();
+    matprocessado = src.clone();
     matxisdavaca = src.clone();
     matretas = src.clone();
     matretangulos = src.clone();
 
-    if (src.empty()){break;}
+    if(src.empty())
+    {
+      cout << "No more frames\n";
+      break;
+    }
+
+    cout << "OK Got frame\n";
 
 		//Imprime captura na tela
-    namedWindow ("Entrada", CV_WINDOW_NORMAL);
+    
+    cout << "Showing src at the 'Entrada' window...\n";
 		imshow( "Entrada", src );
-
+    cout << "OK imshow worked\n";
     //Load an image
     original = src.clone();
     if( !src.data ) {return -1;}
+
+    cout << "Equalizing image...\n";
 
     //Equaliza cie ------------------------------
     Mat cie, cie2;
@@ -89,6 +101,8 @@ int main( int argc, char** argv ){
     cvtColor(cie,src,CV_Lab2BGR);
     cie2 = src.clone();
 
+    cout << "OK Image is equalized\n";
+
     namedWindow( "Trackbar", CV_WINDOW_NORMAL );
     createTrackbar( "Blur (opcional):",     "Trackbar", &kblur,               20,  CowRect );
     createTrackbar( "Closing: ",            "Trackbar", &ero1,                20,  CowRect );
@@ -97,21 +111,30 @@ int main( int argc, char** argv ){
     createTrackbar( "Razao altura/100: ",   "Trackbar", &razaoRetangulosVaca2,300, CowRect );
     createTrackbar( "poligono: ",           "Trackbar", &poli,                50,  CowRect );
 
+    cout << "Calling CowRect function\n";
+
     //Encontra retangulos da vaca
     CowRect(0, 0);
 
+    cout << "OK CowRect went through\n";
 
     //Calcula tempo de execução
     gettimeofday (&tempo2, NULL);
     tempo = (int)(1000000*(tempo2.tv_sec-tempo1.tv_sec)+(tempo2.tv_usec-tempo1.tv_usec));
-    printf ("%d microseg\n%f Hezt\n", tempo, (1000000.0/tempo));
+    printf ("%d microseg\n%f Hertz\n", tempo, (1000000.0/tempo));
 
-    tecla = cvWaitKey(15);
-    if(tecla == 27){return 0;}
+    cout << "WaitKey moment\n";
 
+    tecla = waitKey(10);
+    if(tecla == 27)
+    {
+      return 0;
+    }
+
+    cout << "End of WaitKey moment\n";
   }
 
-  waitKey(0);
+  //waitKey(0);
   savePoints ();
   return 0;
 }
