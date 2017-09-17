@@ -1,5 +1,5 @@
 #include "roscom.h"
-
+#include "US.h"
 void messageInt64Cb( const arduino_msgs::StampedInt64& r_int64_msg){     
 }
 
@@ -17,7 +17,8 @@ void setup()
 
 void loop()
 {
-  sendInt64(0,ReadUS());
+  readUS(SONAR_NUM);
+  sendInt64(0,USReadings[SONAR_NUM]);
   nh.spinOnce();
   delay(50);
 }
