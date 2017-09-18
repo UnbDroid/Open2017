@@ -422,7 +422,10 @@ void loop() {
     velocidade_ReferenciaEsquerda_anterior = velocidade_ReferenciaEsquerda;
     velocidade_ReferenciaDireita_anterior = velocidade_ReferenciaDireita;
     velocidade_ReferenciaDireita = Serial.parseFloat();
-    velocidade_ReferenciaEsquerda = velocidade_ReferenciaDireita;
+    if(velocidade_ReferenciaDireita == 0)//alterção para poder parar sem ficar forçando o motor
+      velocidade_ReferenciaEsquerda = 0;
+    else
+      velocidade_ReferenciaEsquerda = velocidade_ReferenciaDireita + 0.13;//alteração para o robô poder andar mais reto
     Serial.print("Velocidade recebida: ");      Serial.println(velocidade_ReferenciaDireita);
   }
   // --------------------------------------------------------------------------------------
