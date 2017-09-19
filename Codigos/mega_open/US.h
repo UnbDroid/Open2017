@@ -22,7 +22,7 @@
 
 #define MAX_DISTANCE 200 // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
 
-#define SONAR_NUM     8 // Number of sensors.
+#define SONAR_NUM  8 // Number of sensors.
 
 NewPing sonar[SONAR_NUM] = {     // Sensor object array.
   NewPing(TRIGGER_1, ECHO_1, MAX_DISTANCE), // Each sensor's trigger pin, echo pin, and max distance to ping.
@@ -34,9 +34,7 @@ NewPing sonar[SONAR_NUM] = {     // Sensor object array.
   NewPing(TRIGGER_7, ECHO_7, MAX_DISTANCE),
   NewPing(TRIGGER_8, ECHO_8, MAX_DISTANCE)
 };
-
 int USReadings[SONAR_NUM];
-double USIterator[SONAR_NUM];
 
 void readUS(int us_num){
   USReadings[us_num] = sonar[us_num].ping_cm();

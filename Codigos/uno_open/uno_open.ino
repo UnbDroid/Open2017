@@ -1,40 +1,35 @@
 #include "roscom.h"
-#include "MotorsEnc.h"
+#include "ContVel.h"
 #include <TaskScheduler.h>
 
 void messageInt32Cb( const arduino_msgs::StampedInt32& r_int32_msg)
-{ 
-    
+{     
 }
 void messageFloat32Cb( const arduino_msgs::StampedFloat32& r_float32_msg)
 {
+  //velocidade_ReferenciaEsquerda = velocidade_ReferenciaDireita * 1.115;//alteração para o robô poder andar mais reto
+  if(r_float32_msg.id == VEL_REF_DIR){
+     velocidade_ReferenciaDireita_anterior = velocidade_ReferenciaDireita;
+     velocidade_ReferenciaDireita = r_float32_msg.data;
+     //Serial.print("Velocidade recebida Dir: ");      Serial.println(velocidade_ReferenciaDireita);
+  }else if(r_float32_msg.id == VEL_REF_ESQ){
+     velocidade_ReferenciaEsquerda_anterior = velocidade_ReferenciaEsquerda;
+     velocidade_ReferenciaEsquerda = r_float32_msg.data;   
+     //Serial.print("Velocidade recebida Esq: ");      Serial.println(velocidade_ReferenciaEsquerda);  
+  }
+  
   
 }
-//8 sensores US
-//9 sensores de toque
-
-int gooooo;
 void setup()
 {
-  SetupInterrupt();
+  StartVelCont();
   initializeROS();
   pinMode(LED_BUILTIN, OUTPUT);
-  gooooo =0;
-  Serial.begin(9600);
+  Serial.begin(115200);
   
 }
-
 void loop()
 {
-  /*sendInt32(0,5);
-  sendFloat32(1,5.55);
-  nh.spinOnce();*/
-  if( DegreeToCm(Degree(encCountLeft[0])) <40 && DegreeToCm(Degree(encCountRight[0])) <40 && gooooo== 0){
-    Serial.println(DegreeToCm(Degree(encCountRight[0])));
-    OnFwd(MOTOR_RIGHT,POT);
-    OnFwd(MOTOR_LEFT,POT);
-  }else{
-    OffMotors();
-    gooooo = 1;
-  }
+  UpdateVel();
+  nh.spinOnce();
 }
