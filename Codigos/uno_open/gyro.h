@@ -167,6 +167,7 @@ void Turn(int graus){
   else{
     travar();
     interrupts(); 
+    STATE = 1;
     InicioDoGiro = 1;
     settavaloresIniciaisParametros();
     sendInt32(ACABOU_GIRO,ACABOU_GIRO);
