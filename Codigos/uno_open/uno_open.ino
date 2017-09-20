@@ -1,10 +1,17 @@
 #include "roscom.h"
-#include "ContVel.h"
-#include <TaskScheduler.h>
+#include "contvel.h"
+#include "gyro.h"
+
+bool STATE;
 
 void messageInt32Cb( const arduino_msgs::StampedInt32& r_int32_msg)
-{     
+{   
+  if(r_int32_msg.id == GIRA){
+     STATE = 0;
+     graus = r_int32_msg.data;      
+  }  
 }
+
 void messageFloat32Cb( const arduino_msgs::StampedFloat32& r_float32_msg)
 {
   //velocidade_ReferenciaEsquerda = velocidade_ReferenciaDireita * 1.115;//alteração para o robô poder andar mais reto
@@ -16,20 +23,23 @@ void messageFloat32Cb( const arduino_msgs::StampedFloat32& r_float32_msg)
      velocidade_ReferenciaEsquerda_anterior = velocidade_ReferenciaEsquerda;
      velocidade_ReferenciaEsquerda = r_float32_msg.data;   
      //Serial.print("Velocidade recebida Esq: ");      Serial.println(velocidade_ReferenciaEsquerda);  
-  }
-  
-  
+  }  
 }
 void setup()
 {
   StartVelCont();
+  SetupGyroscope(2000);
   initializeROS();
+  STATE = 1;
   pinMode(LED_BUILTIN, OUTPUT);
-  Serial.begin(115200);
+  //Serial.begin(115200);
   
 }
 void loop()
 {
-  UpdateVel();
+  if(STATE)
+    UpdateVel();
+  else
+    Turn(graus);
   nh.spinOnce();
 }

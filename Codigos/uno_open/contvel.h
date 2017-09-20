@@ -77,6 +77,48 @@ void doEncoderA();
 void doEncoder1A();
 
 //Funcoes de setup dos módulos --------------------------------------------------------------------------------------------------------------
+void settavaloresIniciaisParametros(){
+    // Encoders
+  encoder0Pos = 0; //esquerda
+  encoder1Pos = 0; //direita
+  voltas_esquerda = 0, voltas_esquerda_anterior = 0;
+  voltas_direita = 0, voltas_direita_anterior = 0;
+  
+  // Cálculo de velocidade
+  velocidade_esquerda = 0;
+  velocidade_direita = 0;
+  velocidade_esquerda_aux = 0;
+  velocidade_direita_aux = 0;
+  tempo;
+  tempo_aux;
+  
+  // Controle de velocidade
+  velocidade_ReferenciaDireita_anterior = 0;
+  velocidade_ReferenciaEsquerda_anterior = 0;
+  
+  //parametros do controlador, talvez mexendo aqui melhore a diferença entre as rodas ass: Luan
+  //Mexer neles muda tipo a resposta do motor, o estado transitório e o Sobressinal da resposta Ass: Letícia
+  //Se vc consegui deixar as respostas exatamente iguais, talvez melhore Ass: Letícia
+  theta1_esquerda = 0.40;
+  theta2_esquerda = 0.15;//0.25;
+  yTv_esquerda = 0.08;
+  
+  theta1_direita = 0.40;
+  theta2_direita = 0.15;
+  yTv_direita = 0.07;
+  
+  velocidade_esquerda_modelo = 0;
+  velocidade_direita_modelo = 0;
+  tensaomotor_esquerda = 0;
+  tensaomotor_direita = 0;
+  tensao_bateria = 12;
+  
+  //desacelerar
+  potencia_aux_esquerda = 0;
+  potencia_aux_direita = 0;
+  aceleracao_Esquerda =0;
+  aceleracao_Direita = 0;
+}
 
 void startEncoder () {
 

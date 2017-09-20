@@ -1,3 +1,5 @@
+#ifndef DRIVER_H
+#define DRIVER_H
 // Defines ----------------------------------------------------------------------------------------------------------
 #define IN1_E 6
 #define IN2_E 4
@@ -165,3 +167,4 @@ void setVelocidade() {
     direitaEixo(pot_esquerda, pot_direita);  
   }
 }
+#endif
