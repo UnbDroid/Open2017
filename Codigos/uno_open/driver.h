@@ -60,19 +60,33 @@ void esquerdaEixo (int potEsquerda, int potDireita) {
 void frente(int potEsquerda, int potDireita) {
   analogWrite(PWM_E, potEsquerda);
   analogWrite(PWM_D, potDireita);
-  digitalWrite(IN1_E, HIGH);
-  digitalWrite(IN2_E, LOW);
-  digitalWrite(IN1_D, LOW);
-  digitalWrite(IN2_D, HIGH);
+  if(dir==1){  
+    digitalWrite(IN1_E, HIGH);
+    digitalWrite(IN2_E, LOW);
+    digitalWrite(IN1_D, LOW);
+    digitalWrite(IN2_D, HIGH);
+  }else{
+    digitalWrite(IN1_E, LOW);
+    digitalWrite(IN2_E, HIGH);
+    digitalWrite(IN1_D, HIGH);
+    digitalWrite(IN2_D, LOW);    
+  }
 }
 
 void tras(int potEsquerda, int potDireita) {
   analogWrite(PWM_E, potEsquerda);
   analogWrite(PWM_D, potDireita);
-  digitalWrite(IN1_E, LOW);
-  digitalWrite(IN2_E, HIGH);
-  digitalWrite(IN1_D, HIGH);
-  digitalWrite(IN2_D, LOW);
+  if(dir==1){  
+    digitalWrite(IN1_E, LOW);
+    digitalWrite(IN2_E, HIGH);
+    digitalWrite(IN1_D, HIGH);
+    digitalWrite(IN2_D, LOW);
+  }else{
+    digitalWrite(IN1_E, HIGH);
+    digitalWrite(IN2_E, LOW);
+    digitalWrite(IN1_D, LOW);
+    digitalWrite(IN2_D, HIGH);   
+  }
 }
 
 void parar () {
