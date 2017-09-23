@@ -15,7 +15,7 @@ void messageFloat32Cb( const arduino_msgs::StampedFloat32& r_float32_msg)
   //velocidade_ReferenciaEsquerda = velocidade_ReferenciaDireita * 1.115;//alteração para o robô poder andar mais reto
   
   if(r_float32_msg.id == VEL_REF_DIR){
-     if(r_float32_msg.data>=0){
+     if(r_float32_msg.data>0){
         if(dir==0) settavaloresIniciaisParametros();
         dir = 1;
      }
@@ -29,7 +29,7 @@ void messageFloat32Cb( const arduino_msgs::StampedFloat32& r_float32_msg)
 
   }else if(r_float32_msg.id == VEL_REF_ESQ){
     
-     if(r_float32_msg.data>=0){
+     if(r_float32_msg.data>0){
         if(dir==0) settavaloresIniciaisParametros();
         dir = 1;
      }
