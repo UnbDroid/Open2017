@@ -12,6 +12,15 @@
 #include "arduino_msgs/StampedString.h"
 #include <sstream>
 #include <math.h>
+#include <vector>
+
+
+#define X 0
+#define Y 1
+#define A 30.0f
+#define PI 3.14159265
+
+using namespace std;
 
 void messageMInt64Cb( const arduino_msgs::StampedInt64& aM_int64_msg)
 {
@@ -28,6 +37,44 @@ void messageNInt32Cb( const arduino_msgs::StampedInt32& aN_int32_msg)
 void messageNFloat32Cb( const arduino_msgs::StampedFloat32& aN_float32_msg)
 {
 }
+
+float DeGrausParaRadianos(float angulo)
+{
+	return (angulo*PI)/180;
+}
+
+float DeRadianosParaDegraus(float angulo)
+{
+	return (angulo*180)/PI;
+}
+
+vector<float> AnaliseLugarDaVaca(float x1, float y1, float x2, float y2, float theta)
+{
+	float  distancia_direta, centro_da_entrada[2];
+	vector<float> ponto_do_viro(2);
+	centro_da_entrada[X] = ((x2-x1)/2);
+	centro_da_entrada[Y] = ((y2-y1)/2);
+	distancia_direta = sqrt(pow(centro_da_entrada[X],2) + pow(centro_da_entrada[Y],2));
+	if (distancia_direta<A)
+		///se ajeita (dar re e ganhar espaco para chegar melhor na vaca) e faz de novo o processo
+	ponto_do_viro[X] = centro_da_entrada[X] - (A*cos(DeGrausParaRadianos(90-theta)));
+	ponto_do_viro[Y] = centro_da_entrada[Y] - (A*sin(DeGrausParaRadianos(90-theta)));
+	return ponto_do_viro;
+}
+
+void TrajetoriaSuaveAteAVaca(float x1, float y1, float x2, float y2, float theta)
+{
+	float alfa, distancia_ate_ponto_do_giro;
+	vector<float> v = AnaliseLugarDaVaca(x1, y1, x2, y2, theta);
+	alfa = DeRadianosParaDegraus(atan2(v[X],v[Y]));
+	
+	//gira(alfa)
+	distancia_ate_ponto_do_giro = sqrt(pow(v[X],2) + pow(v[Y],2));
+	//anda(distancia_ate_ponto_do_giro)
+	//gira(-(alfa+theta))
+	//anda(A)
+}
+
 
 
 int main(int argc, char **argv)
