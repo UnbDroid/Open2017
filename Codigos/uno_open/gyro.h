@@ -14,10 +14,12 @@
 #define GIRA 200
 
 
-#define VEL_GIRO_DIR 172.5f
-#define VEL_GIRO_ESQ 150
+#define VEL_GIRO_DIR 150.0f
+#define VEL_GIRO_ESQ 172.5f
 #define ACABOU_GIRO 1
 
+
+bool STATE;
 
 int graus;
 int AngSpeedZ, gyroTime, gyroAddress = 105;
@@ -25,6 +27,9 @@ unsigned long tGyroNow=0, tGyroAnt;
 long int yaw=0;
 float gyroFilterB=0, gyroFilterA = 0;
 int InicioDoGiro;
+
+
+
 
 void WriteRegister(int deviceAddress, byte address, byte val) 
 {
