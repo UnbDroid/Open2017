@@ -14,26 +14,86 @@
 #include <math.h>
 #include <vector>
 
+using namespace std;
 
 #define X 0
 #define Y 1
 #define A 30.0f
 #define PI 3.14159265
 
-using namespace std;
+/*---------------------------------definicoes dos sensores US-------------------------------------*/
+#define US1 0
+#define US2 1
+#define US3 2
+#define US4 3
+#define US5 4
+#define US6 5
+#define US7 6
+#define US8 7
+
+#define NUM_IDEN_US 100
+#define QUANTIDADE_SENSOR_US 8
+
+//sinal chega do arduino com o id(USn) = (n-1) + NUM_IDEN_US... exemplo: id do US5 = (5-1) + 100 = 104
+
+#define alfa_US 0.15f
+vector<float> sonar(QUANTIDADE_SENSOR_US);
+
+/*---------------------------------------------------------------------------------------*/
+
+/*--------------------------definicoes dos sensores de TOQUE-----------------------------*/
+#define TOQUE1 0
+#define TOQUE2 1
+#define TOQUE3 2
+#define TOQUE4 3
+#define TOQUE5 4
+#define TOQUE6 5
+#define TOQUE7 6
+
+#define NUM_IDEN_TOQUE 200
+#define QUANTIDADE_SENSOR_TOQUE 7
+
+vector<bool> toque(QUANTIDADE_SENSOR_TOQUE);
+
+/*---------------------------------------------------------------------------------------*/
 
 void messageMInt64Cb( const arduino_msgs::StampedInt64& aM_int64_msg)
 {
 }
+
+
 void messageMFloat64Cb( const arduino_msgs::StampedFloat64& aM_float64_msg)
 {
 }
+
+
+bool ehSonar(int id)
+{
+	id = id - NUM_IDEN_US;
+	if (id < QUANTIDADE_SENSOR_US && id >= 0)	 return true;
+	else	return false;
+}
+
+bool ehToque(int id)
+{
+	id = id - NUM_IDEN_TOQUE;
+	if (id < QUANTIDADE_SENSOR_TOQUE && id >= 0)	 return true;
+	else	return false;
+}
+
 void messageMFloat32Cb( const arduino_msgs::StampedFloat32& aM_float32_msg)
 {
+	if(ehSonar(aM_float32_msg.id)) 
+		sonar[aM_float32_msg.id - NUM_IDEN_US] = aM_float32_msg.data * alfa_US + sonar[aM_float32_msg.id - NUM_IDEN_US] * (1 - alfa_US);
+	else if (ehToque(aM_float32_msg.id)) 
+		toque[aM_float32_msg.id - NUM_IDEN_TOQUE] = aM_float32_msg.data;
 }
+
 void messageNInt32Cb( const arduino_msgs::StampedInt32& aN_int32_msg)
 {
+
 }
+
 void messageNFloat32Cb( const arduino_msgs::StampedFloat32& aN_float32_msg)
 {
 }
