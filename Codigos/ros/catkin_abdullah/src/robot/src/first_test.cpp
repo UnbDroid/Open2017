@@ -19,29 +19,32 @@ using namespace std;
 #define X 0
 #define Y 1
 #define A 30.0f
-#define PI 3.14159265
+#define PI 3.14159265f
 
 /*---------------------------------definicoes dos sensores US-------------------------------------*/
-#define US1 0
-#define US2 1
-#define US3 2
-#define US4 3
-#define US5 4
-#define US6 5
-#define US7 6
-#define US8 7
 
-#define NUM_IDEN_US 100
-#define QUANTIDADE_SENSOR_US 8
+	#define US1 0
+	#define US2 1
+	#define US3 2
+	#define US4 3
+	#define US5 4
+	#define US6 5
+	#define US7 6
+	#define US8 7
+	#define US_MAX_DIST 200
+	#define NUM_IDEN_US 100
+	#define QUANTIDADE_SENSOR_US 8
+	#define TAMANHO_MEDIANA 5
+	#define VALOR_MEDIANA 2
+	//sinal chega do arduino com o id(USn) = (n-1) + NUM_IDEN_US... exemplo: id do US5 = (5-1) + 100 = 104
 
-//sinal chega do arduino com o id(USn) = (n-1) + NUM_IDEN_US... exemplo: id do US5 = (5-1) + 100 = 104
+	#define alfa_US 0.15f
+	vector<float> sonar(QUANTIDADE_SENSOR_US);
 
-#define alfa_US 0.15f
-vector<float> sonar(QUANTIDADE_SENSOR_US);
+/*-----------------------------------------------------------------------------------------------*/
 
-/*---------------------------------------------------------------------------------------*/
+/*----------------------------definicoes dos sensores de TOQUE-----------------------------------*/
 
-/*--------------------------definicoes dos sensores de TOQUE-----------------------------*/
 #define TOQUE1 0
 #define TOQUE2 1
 #define TOQUE3 2
@@ -49,23 +52,59 @@ vector<float> sonar(QUANTIDADE_SENSOR_US);
 #define TOQUE5 4
 #define TOQUE6 5
 #define TOQUE7 6
+#define TOQUE8 7
+#define TOQUE9 8
 
 #define NUM_IDEN_TOQUE 200
-#define QUANTIDADE_SENSOR_TOQUE 7
+#define QUANTIDADE_SENSOR_TOQUE 9
 
 vector<bool> toque(QUANTIDADE_SENSOR_TOQUE);
 
-/*---------------------------------------------------------------------------------------*/
+/*-----------------------------------------------------------------------------------------------*/
 
-void messageMInt64Cb( const arduino_msgs::StampedInt64& aM_int64_msg)
+struct Us{
+  float valor;
+  float valores[TAMANHO_MEDIANA];
+  long long int vezes_lido;
+};
+
+Us ultrassom[QUANTIDADE_SENSOR_US];
+
+template<typename ItemType>
+unsigned Partition(ItemType* array, unsigned f, unsigned l, ItemType pivot)
 {
+    unsigned i = f-1, j = l+1;
+    while(true)
+    {
+        while(pivot < array[--j]);
+        while(array[++i] < pivot);
+        if(i<j)
+        {
+            ItemType tmp = array[i];
+            array[i] = array[j];
+            array[j] = tmp;
+        }
+        else
+            return j;
+    }
 }
 
-
-void messageMFloat64Cb( const arduino_msgs::StampedFloat64& aM_float64_msg)
+template<typename ItemType>
+void QuickSortImpl(ItemType* array, unsigned f, unsigned l)
 {
+    while(f < l)
+    {
+        unsigned m = Partition(array, f, l, array[f]);
+        QuickSortImpl(array, f, m);
+        f = m+1;
+    }
 }
 
+template<typename ItemType>
+void QuickSort(ItemType* array, unsigned size)
+{
+    QuickSortImpl(array, 0, size-1);
+}
 
 bool ehSonar(int id)
 {
@@ -81,21 +120,53 @@ bool ehToque(int id)
 	else	return false;
 }
 
+void messageMInt64Cb( const arduino_msgs::StampedInt64& aM_int64_msg)
+{
+	if(ehSonar(aM_int64_msg.id))
+	{
+		int usPos = aM_int64_msg.id - NUM_IDEN_US; 
+		int valor ;
+		valor = (aM_int64_msg.data <= 0.1) ? US_MAX_DIST : aM_int64_msg.data;	
+		//sonar[aN_int32_msg.id - NUM_IDEN_US] = valor * alfa_US + sonar[aN_int32_msg.id - NUM_IDEN_US] * (1 - alfa_US);
+		float valorf = (float)valor ; 
+		long long int iterator = ultrassom[usPos].vezes_lido ;
+	    ultrassom[usPos].valores[iterator % TAMANHO_MEDIANA] = valorf;
+	    float valores[TAMANHO_MEDIANA];
+	    for(unsigned i = 0; i < TAMANHO_MEDIANA; ++i)
+	      	valores[i] = ultrassom[usPos].valores[i];
+	    QuickSort(valores,TAMANHO_MEDIANA);
+	    //ultrassom[usPos].value = values[MEDIAN_VALUE];
+	    valorf = valores[VALOR_MEDIANA];
+	    ultrassom[usPos].valor = valorf * alfa_US + ultrassom[usPos].valor * ( 1- alfa_US);
+	    ultrassom[usPos].vezes_lido++;
+	}else if (ehToque(aM_int64_msg.id)) 
+		toque[aM_int64_msg.id - NUM_IDEN_TOQUE] = aM_int64_msg.data;
+}
+
+
+void messageMFloat64Cb( const arduino_msgs::StampedFloat64& aM_float64_msg)
+{
+	
+}
+
+
+
 void messageMFloat32Cb( const arduino_msgs::StampedFloat32& aM_float32_msg)
 {
-	if(ehSonar(aM_float32_msg.id)) 
-		sonar[aM_float32_msg.id - NUM_IDEN_US] = aM_float32_msg.data * alfa_US + sonar[aM_float32_msg.id - NUM_IDEN_US] * (1 - alfa_US);
-	else if (ehToque(aM_float32_msg.id)) 
-		toque[aM_float32_msg.id - NUM_IDEN_TOQUE] = aM_float32_msg.data;
+	
 }
 
 void messageNInt32Cb( const arduino_msgs::StampedInt32& aN_int32_msg)
 {
-
+	
 }
+
+
+	
 
 void messageNFloat32Cb( const arduino_msgs::StampedFloat32& aN_float32_msg)
 {
+
 }
 
 float DeGrausParaRadianos(float angulo)
@@ -151,7 +222,7 @@ int main(int argc, char **argv)
 	arduino_msgs::StampedInt64 int64M_msg;	
 	arduino_msgs::StampedFloat64 float64M_msg;
 	arduino_msgs::StampedFloat32 float32M_msg;
-	/*-------------------------------------------settar as paradas do arduino nano---------------------------------------*/
+	/*-------------------------------------------settar as paradas do arduino uno---------------------------------------*/
 	ros::Publisher pubN_int32 = nh.advertise<arduino_msgs::StampedInt32>("raspberryN_int32", 1000);
 	ros::Publisher pubN_float32 = nh.advertise<arduino_msgs::StampedFloat32>("raspberryN_float32", 1000);
 	ros::Subscriber subN_int32 = nh.subscribe("arduinoN_int32", 1000, messageNInt32Cb);
