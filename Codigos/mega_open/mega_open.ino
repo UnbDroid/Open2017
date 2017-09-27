@@ -59,6 +59,7 @@ void taskTOQUECallback()
              sendInt64(i + NUM_IDEN_TOQUE, toque[i]);
              oldToque[i] = toque[i];
         }
+        i++;
    }
 }
 
