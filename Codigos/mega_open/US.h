@@ -3,6 +3,19 @@
 
 #include <NewPing.h>
 
+
+#define FRENTE_R 0
+#define FRENTE_L 0
+#define TRAS_R 0
+#define TRAS_L 0
+#define LADO_R 0
+#define LADO_L 0
+#define CIMA_R 0
+#define CIMA_L 0
+
+
+#define NUM_IDEN_US 100
+
 #define TRIGGER_1 26 
 #define ECHO_1 28 
 #define TRIGGER_2 24

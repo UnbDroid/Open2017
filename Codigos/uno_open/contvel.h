@@ -24,8 +24,8 @@
 #define VELOCIDADE_MAXIMA 5.5f
 #define VELOCIDADE_LIMITE 8.0f
 
-#define VEL_REF_DIR 100
-#define VEL_REF_ESQ 101
+#define VEL_REF_DIR 301
+#define VEL_REF_ESQ 302
 
 // Variáveis -----------------------------------------------------------------------------------------------
 

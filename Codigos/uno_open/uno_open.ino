@@ -26,7 +26,6 @@ void messageFloat32Cb( const arduino_msgs::StampedFloat32& r_float32_msg)
      velocidade_ReferenciaDireita_anterior = velocidade_ReferenciaDireita;
      velocidade_ReferenciaDireita = abs(r_float32_msg.data);
      //Serial.print("Velocidade recebida Dir: ");      Serial.println(velocidade_ReferenciaDireita);
-
   }else if(r_float32_msg.id == VEL_REF_ESQ){
     
      if(r_float32_msg.data>0){
@@ -42,6 +41,7 @@ void messageFloat32Cb( const arduino_msgs::StampedFloat32& r_float32_msg)
      //Serial.print("Velocidade recebida Esq: ");      Serial.println(velocidade_ReferenciaEsquerda);  
   }  
 }
+
 void setup()
 {
   StartVelCont();
@@ -50,9 +50,9 @@ void setup()
   STATE = 1;
   dir = 1;
   pinMode(LED_BUILTIN, OUTPUT);
-  //Serial.begin(115200);
-  
+  //Serial.begin(115200); 
 }
+
 void loop()
 {
   if(STATE)

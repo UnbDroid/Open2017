@@ -39,7 +39,15 @@ using namespace std;
 	//sinal chega do arduino com o id(USn) = (n-1) + NUM_IDEN_US... exemplo: id do US5 = (5-1) + 100 = 104
 
 	#define alfa_US 0.15f
-	vector<float> sonar(QUANTIDADE_SENSOR_US);
+	//vector<float> sonar(QUANTIDADE_SENSOR_US);
+	struct Us{
+  		float valor;
+  		float valores[TAMANHO_MEDIANA];
+  		long long int vezes_lido;
+	};
+
+	Us ultrassom[QUANTIDADE_SENSOR_US];
+
 
 /*-----------------------------------------------------------------------------------------------*/
 
@@ -52,23 +60,17 @@ using namespace std;
 #define TOQUE5 4
 #define TOQUE6 5
 #define TOQUE7 6
+
 #define TOQUE8 7
 #define TOQUE9 8
 
 #define NUM_IDEN_TOQUE 200
 #define QUANTIDADE_SENSOR_TOQUE 9
 
-vector<bool> toque(QUANTIDADE_SENSOR_TOQUE);
+vector<bool> toque(QUANTIDADE_SENSOR_TOQUE, false);
 
 /*-----------------------------------------------------------------------------------------------*/
 
-struct Us{
-  float valor;
-  float valores[TAMANHO_MEDIANA];
-  long long int vezes_lido;
-};
-
-Us ultrassom[QUANTIDADE_SENSOR_US];
 
 template<typename ItemType>
 unsigned Partition(ItemType* array, unsigned f, unsigned l, ItemType pivot)
@@ -149,8 +151,6 @@ void messageMFloat64Cb( const arduino_msgs::StampedFloat64& aM_float64_msg)
 	
 }
 
-
-
 void messageMFloat32Cb( const arduino_msgs::StampedFloat32& aM_float32_msg)
 {
 	
@@ -160,9 +160,6 @@ void messageNInt32Cb( const arduino_msgs::StampedInt32& aN_int32_msg)
 {
 	
 }
-
-
-	
 
 void messageNFloat32Cb( const arduino_msgs::StampedFloat32& aN_float32_msg)
 {

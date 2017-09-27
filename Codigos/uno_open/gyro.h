@@ -11,13 +11,14 @@
 #define REFERENCE 0X25
 
 //ID referente ao giro na comunicacao
-#define GIRA 200
+#define GIRA 300
 
 
 #define VEL_GIRO_DIR 150.0f
 #define VEL_GIRO_ESQ 172.5f
-#define ACABOU_GIRO 1
 
+#define ACABOU_GIRO 1
+#define ANGULO_ATUAL 2 
 
 bool STATE;
 
@@ -38,6 +39,7 @@ void WriteRegister(int deviceAddress, byte address, byte val)
     Wire.write(val);         // send value to write
     Wire.endTransmission();     // end transmission
 }
+
 int ReadRegister(int deviceAddress, byte address)
 {
     //Serial.println(10);
@@ -55,7 +57,7 @@ int ReadRegister(int deviceAddress, byte address)
     
     { 
       out++;
-      Serial.println("nao conectou");
+      //Serial.println("nao conectou");
         // waiting
     }
     if(out<200){
@@ -164,12 +166,12 @@ void Turn(int graus){
   UpdateGyro();
   UpdateGyro();
   if(abs(GetGyro())<abs(graus)){
+    sendInt32(ANGULO_ATUAL, GetGyro());
     if(graus<0)
       direitaEixo(VEL_GIRO_ESQ, VEL_GIRO_DIR);
     else
       esquerdaEixo(VEL_GIRO_ESQ, VEL_GIRO_DIR);
-  }
-  else{
+  }else{
     travar();
     interrupts(); 
     STATE = 1;

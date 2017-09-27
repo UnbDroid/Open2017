@@ -24,6 +24,7 @@ float velocidade_ReferenciaDireita = 0;
 
 bool forward_esquerda = true;
 bool forward_direita = true;
+bool dir;
 
 // Funcoes -----------------------------------------------------------------------------------------------------------
 
