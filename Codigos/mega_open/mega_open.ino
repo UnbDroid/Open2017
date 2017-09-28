@@ -69,7 +69,8 @@ void taskTOQUECallback()
 void setup()
 {
   initializeROS();
-  pinMode(LED_BUILTIN, OUTPUT);
+  startSENSORTOQUE();
+  start_TASKS();
 }
 
 void loop()

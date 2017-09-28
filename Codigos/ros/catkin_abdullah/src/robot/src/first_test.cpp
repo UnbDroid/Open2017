@@ -38,7 +38,7 @@ using namespace std;
 	#define VALOR_MEDIANA 2
 	//sinal chega do arduino com o id(USn) = (n-1) + NUM_IDEN_US... exemplo: id do US5 = (5-1) + 100 = 104
 
-	#define alfa_US 0.15f
+	#define alfa_US 0.8f
 	//vector<float> sonar(QUANTIDADE_SENSOR_US);
 	struct Us{
   		float valor;
@@ -46,7 +46,7 @@ using namespace std;
   		long long int vezes_lido;
 	};
 
-	Us ultrassom[QUANTIDADE_SENSOR_US];
+	vector<Us> ultrassom(QUANTIDADE_SENSOR_US);
 
 
 /*-----------------------------------------------------------------------------------------------*/
