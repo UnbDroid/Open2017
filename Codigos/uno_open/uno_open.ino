@@ -1,6 +1,6 @@
 #include "roscom.h"
 #include "contvel.h"
-#include "gyro.h"
+#include "giro.h"
 
 void messageInt32Cb( const arduino_msgs::StampedInt32& r_int32_msg)
 {   
@@ -45,7 +45,7 @@ void messageFloat32Cb( const arduino_msgs::StampedFloat32& r_float32_msg)
 void setup()
 {
   StartVelCont();
-  SetupGyroscope(2000);
+  inicializaGiro();
   initializeROS();
   STATE = 1;
   dir = 1;
@@ -58,6 +58,6 @@ void loop()
   if(STATE)
     UpdateVel();
   else
-    Turn(graus);
+    Turn();
   nh.spinOnce();
 }
