@@ -1,13 +1,14 @@
 #include <math.h>
 #include "driver.h"
-
+//#include <PinChangeInt.h>
 // Defines -------------------------------------------------------------------------------------------------
 
 // Encoders esquerda
-#define encoder0PinA 2
+#define encoder0PinA 18
 
 // Encoders direita
-#define encoder1PinA 3
+#define encoder1PinA 19
+
 
 // Calculo de velocidade
 #define pi 3.14159265359f
@@ -129,6 +130,9 @@ void startEncoder () {
   attachInterrupt(digitalPinToInterrupt(encoder0PinA), doEncoderA, CHANGE);
   // Encoder Direita
   attachInterrupt(digitalPinToInterrupt(encoder1PinA), doEncoder1A, CHANGE);
+  //attachPinChangeInterrupt(digitalPinToInterrupt(encoder0PinA), doEncoderA, CHANGE);
+  // Encoder Direita
+  //attachPinChangeInterrupt(digitalPinToInterrupt(encoder1PinA), doEncoder1A, CHANGE);
 }
 
 //Funções Encoder -------------------------------------------------------------------------------------------------------------
@@ -217,7 +221,7 @@ void controleAdaptativoVelocidade() {
 
 void StartVelCont() {
   tempo = millis();
-  Serial.begin(115200);
+  
   startDriver();
   startEncoder();
 }
@@ -240,4 +244,5 @@ void UpdateVel() {
   }
   // Chama a funcao que calcula a tensao de saida para os motores -----------------------
   controleAdaptativoVelocidade();
+  //sendFloat32(222, velocidade_ReferenciaEsquerda);
 }

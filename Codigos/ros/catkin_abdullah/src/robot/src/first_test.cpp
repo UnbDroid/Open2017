@@ -21,6 +21,14 @@ using namespace std;
 #define A 30.0f
 #define PI 3.14159265f
 
+#define ACABOU_GIRO 1
+#define ACABOU_ATUAL 2
+
+
+#define GIRA 300
+#define VEL_REF_DIR 301
+#define VEL_REF_ESQ 302
+
 /*---------------------------------definicoes dos sensores US-------------------------------------*/
 
 	#define US1 0
@@ -226,12 +234,13 @@ int main(int argc, char **argv)
 	ros::Subscriber subN_float32 = nh.subscribe("arduinoN_float32", 1000, messageNFloat32Cb);
 	arduino_msgs::StampedInt32 int32N_msg;	
 	arduino_msgs::StampedFloat32 float32N_msg;
-	
+	float32N_msg.id = VEL_REF_DIR;
+	float32N_msg.data = 0.8;
 	ros::Rate loop_rate(10);	
 	int count = 0;
 	while (ros::ok())
 	{
-		int64M_msg.data = count;
+		/*int64M_msg.data = count;
 		float32M_msg.data = count;
 		float64M_msg.data = count;
 		int32N_msg.data = count;
@@ -240,7 +249,24 @@ int main(int argc, char **argv)
 		pubM_float64.publish(float64M_msg);
 		pubM_float32.publish(float32M_msg);
 		pubN_int32.publish(int32N_msg);
-		pubN_float32.publish(float32N_msg);
+		pubN_float32.publish(float32N_msg);*/
+		if(count==30){
+			pubN_float32.publish(float32N_msg);
+			float32N_msg.id = VEL_REF_ESQ;
+			pubN_float32.publish(float32N_msg);
+			float32N_msg.id = VEL_REF_DIR;
+			pubN_float32.publish(float32N_msg);
+		}else if(count == 85){
+			float32N_msg.data = 0.0;
+			pubN_float32.publish(float32N_msg);
+			float32N_msg.id = VEL_REF_ESQ;
+			pubN_float32.publish(float32N_msg);
+			float32N_msg.id = VEL_REF_DIR;
+			pubN_float32.publish(float32N_msg);
+			int32N_msg.id = GIRA;
+			int32N_msg.data = 90;
+			pubN_int32.publish(int32N_msg);
+		}	
 		ros::spinOnce();
 		loop_rate.sleep();
 		++count;

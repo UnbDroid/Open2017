@@ -1,4 +1,3 @@
-
 #include <Wire.h>
 #include <MPU6050.h>
 
@@ -11,7 +10,7 @@
 #define ANGULO_ATUAL 2 
 
 bool InicioDoGiro;
-bool STATE;
+bool STATE = true;
 int graus;
 
 MPU6050 mpu;
@@ -28,11 +27,8 @@ float yaw = 0;
 
 void inicializaGiro() 
 {
-  Serial.begin(115200);
-
   while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G))
   {
-    Serial.println("Could not find a valid MPU6050 sensor, check wiring!");
     delay(500);
   }
   mpu.calibrateGyro();
@@ -47,29 +43,33 @@ void atualizaGiro()
   pitch = pitch + norm.YAxis * timeStep;
   roll = roll + norm.XAxis * timeStep;
   yaw = yaw + norm.ZAxis * timeStep;
-  Serial.print(" Roll = ");
-  Serial.print(roll);
+  //Serial.print(" Roll = ");
+  //Serial.print(roll);
   delay((timeStep*1000) - (millis() - timer));
 }
 
 void Turn(){
+  sendFloat32(52240, 206.6);
   if(InicioDoGiro){
     travar();
     noInterrupts();
+    sendFloat32(52240, 2336.6);
     InicioDoGiro=0; 
     pitch = 0;
-	roll = 0;
-	yaw = 0;
+	  roll = 0;
+	  yaw = 0;
     settavaloresIniciaisParametros();
   }
   atualizaGiro();
   if(abs(roll)<abs(graus)){
     atualizaGiro();
+    atualizaGiro();
     sendInt32(ANGULO_ATUAL, roll);
-    if(graus<0)
+    if(graus<0){
       direitaEixo(VEL_GIRO_ESQ, VEL_GIRO_DIR);
-    else
+    }else{
       esquerdaEixo(VEL_GIRO_ESQ, VEL_GIRO_DIR);
+    }
   }else{
     travar();
     interrupts(); 
