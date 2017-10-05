@@ -130,9 +130,6 @@ void startEncoder () {
   attachInterrupt(digitalPinToInterrupt(encoder0PinA), doEncoderA, CHANGE);
   // Encoder Direita
   attachInterrupt(digitalPinToInterrupt(encoder1PinA), doEncoder1A, CHANGE);
-  //attachPinChangeInterrupt(digitalPinToInterrupt(encoder0PinA), doEncoderA, CHANGE);
-  // Encoder Direita
-  //attachPinChangeInterrupt(digitalPinToInterrupt(encoder1PinA), doEncoder1A, CHANGE);
 }
 
 //Funções Encoder -------------------------------------------------------------------------------------------------------------

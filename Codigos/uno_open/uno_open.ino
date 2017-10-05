@@ -26,8 +26,6 @@ void messageFloat32Cb( const arduino_msgs::StampedFloat32& r_float32_msg)
      }    
      velocidade_ReferenciaDireita_anterior = velocidade_ReferenciaDireita;
      velocidade_ReferenciaDireita = abs(r_float32_msg.data);
-     // sendFloat32(20, velocidade_ReferenciaDireita);
-     //Serial.print("Velocidade recebida Dir: ");      Serial.println(velocidade_ReferenciaDireita);
   }else if(r_float32_msg.id == VEL_REF_ESQ){
     
      if(r_float32_msg.data>0){
@@ -40,8 +38,6 @@ void messageFloat32Cb( const arduino_msgs::StampedFloat32& r_float32_msg)
      }      
      velocidade_ReferenciaEsquerda_anterior = velocidade_ReferenciaEsquerda;
      velocidade_ReferenciaEsquerda = abs(r_float32_msg.data)* 1.15;  //para poder corrigir para andar reto 
-     //Serial.print("Velocidade recebida Esq: ");      Serial.println(velocidade_ReferenciaEsquerda); 
-    // sendFloat32(30, velocidade_ReferenciaEsquerda); 
   }  
 }
 
@@ -61,7 +57,6 @@ void loop()
     UpdateVel();
   }
   else{
-    sendFloat32(42123,graus); 
     Turn();
   }
   nh.spinOnce();
