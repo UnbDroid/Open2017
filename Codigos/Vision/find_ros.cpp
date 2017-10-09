@@ -26,7 +26,10 @@ Point2f pt1linha1(0.0,0.0), pt2linha1(0.0,0.0),pt1linha2(0.0,0.0), pt2linha2(0.0
 double z1, x1, ang1, z2, x2, ang2, dist, err;
 float max_error = 0.2;
 
-bool no_err;
+ros::NodeHandle nh;
+ros::Publisher pubVis_float64;
+ros::Subscriber subVis_int32;
+arduino_msgs::StampedFloat64 vis_float64_msg;
 
 int frame_width;
 int frame_height;
@@ -47,6 +50,13 @@ void CowRect(int, void*);
 void position (float line1size, float line2size, float px1, float px2);
 void findCow()
 
+void rosInit()
+{
+  pubVis_float64 = nh.advertise<arduino_msgs::StampedFloat64>("Vision_float64", 1000);
+  
+  subVis_int32 = nh.subscribe("Vision_int32", 1000, messageVisInt32Cb);
+}
+
 bool posVaca(int id)
 {
   if (id == NUM_IDEN_VISION)
@@ -66,28 +76,36 @@ void messageVisInt32Cb( const arduino_msgs::StampedInt32& vis_int32_msg)
   }
 }
 
+void sendPosVaca()
+{
+  vis_float64_msg.id == NUM_IDEN_VISION + 1;
+  vis_float64_msg.data == x1;
+  pubVis_float64_err.publish(vis_float64_msg)
+
+  vis_float64_msg.id == NUM_IDEN_VISION + 2;
+  vis_float64_msg.data == z1;
+  pubVis_float64_err.publish(vis_float64_msg)
+
+  vis_float64_msg.id == NUM_IDEN_VISION + 3;
+  vis_float64_msg.data == x2;
+  pubVis_float64_err.publish(vis_float64_msg)
+
+  vis_float64_msg.id == NUM_IDEN_VISION + 4;
+  vis_float64_msg.data == z2;
+  pubVis_float64_err.publish(vis_float64_msg)
+  
+  vis_float64_msg.id == NUM_IDEN_VISION + 5;
+  vis_float64_msg.data == err;
+  pubVis_float64_err.publish(vis_float64_msg)
+}
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "find_ros");
-  ros::NodeHandle nh;
 
   cam(1);
 
   if(!cam.isOpened()) {printf("Impossível abrir camera\n"); return -1;}
-
-  ros::Publisher pubVis_float64_err = nh.advertise<arduino_msgs::StampedFloat64>("Vision_float64_err", 1000);
-  ros::Publisher pubVis_float64_x1 = nh.advertise<arduino_msgs::StampedFloat64>("Vision_float64_x1", 1000);
-  ros::Publisher pubVis_float64_z1 = nh.advertise<arduino_msgs::StampedFloat64>("Vision_float64_z1", 1000);
-  ros::Publisher pubVis_float64_x2 = nh.advertise<arduino_msgs::StampedFloat64>("Vision_float64_x2", 1000);
-  ros::Publisher pubVis_float64_z2 = nh.advertise<arduino_msgs::StampedFloat64>("Vision_float64_z2", 1000);
-
-  ros::Subscriber subVis_int32 = nh.subscribe("Vision_int32", 1000, messageVisInt32Cb);
-
-  arduino_msgs::StampedFloat64 vis_float64_msg_err;
-  arduino_msgs::StampedFloat64 vis_float64_msg_x1;
-  arduino_msgs::StampedFloat64 vis_float64_msg_z1;
-  arduino_msgs::StampedFloat64 vis_float64_msg_x2;
-  arduino_msgs::StampedFloat64 vis_float64_msg_z2;
 
   ros::Rate loop_rate(10);
 
@@ -95,24 +113,7 @@ int main(int argc, char **argv)
   {
     if(newValPosVaca == 1) // se tem uma nova leitura da posição da vaca
     {
-      vis_float64_msg_err.id == NUM_IDEN_VISION + 5;
-      vis_float64_msg_x1.id == NUM_IDEN_VISION + 1;
-      vis_float64_msg_z1.id == NUM_IDEN_VISION + 2;
-      vis_float64_msg_x2.id == NUM_IDEN_VISION + 3;
-      vis_float64_msg_z2.id == NUM_IDEN_VISION + 4;
-
-      vis_float64_msg_err.data == err;
-      vis_float64_msg_x1.data == x1;
-      vis_float64_msg_z1.data == z1;
-      vis_float64_msg_x2.data == x2;
-      vis_float64_msg_z2.data == z2;
-
-      pubVis_float64_err.publish(vis_float64_msg_err)
-      pubVis_float64_x1.publish(vis_float64_msg_x1);
-      pubVis_float64_z1.publish(vis_float64_msg_z1);
-      pubVis_float64_x2.publish(vis_float64_msg_x2);
-      pubVis_float64_z1.publish(vis_float64_msg_z2);
-
+      sendPosVaca()
       newValPosVaca = 0;
     }
 
