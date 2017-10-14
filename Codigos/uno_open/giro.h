@@ -45,15 +45,14 @@ void atualizaGiro()
 
 void Turn(){
   if(InicioDoGiro){
-    travar();
     //noInterrupts();
+    settavaloresIniciaisParametros();
     detachInterrupt(digitalPinToInterrupt(encoder0PinA));
     detachInterrupt(digitalPinToInterrupt(encoder1PinA));
     InicioDoGiro=0; 
     pitch = 0;
 	  roll = 0;
 	  yaw = 0;
-    settavaloresIniciaisParametros();
   }
   atualizaGiro();
   if(abs(roll)<abs(graus)){
@@ -66,12 +65,12 @@ void Turn(){
       direitaEixo(VEL_GIRO_ESQ, VEL_GIRO_DIR);
     }
   }else{
-    travar();
     //interrupts(); 
+    settavaloresIniciaisParametros();
     attachInterrupt(digitalPinToInterrupt(encoder0PinA), doEncoderA, CHANGE);
     attachInterrupt(digitalPinToInterrupt(encoder1PinA), doEncoder1A, CHANGE);
     STATE = 1;
     InicioDoGiro = 1;
-    settavaloresIniciaisParametros();
+    sendInt32(ACABOU_GIRO,0);
   }
 }

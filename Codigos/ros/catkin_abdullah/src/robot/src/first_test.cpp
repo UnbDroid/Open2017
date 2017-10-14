@@ -1,4 +1,5 @@
 #include "ros/ros.h"
+#include "ros/time.h"
 #include "arduino_msgs/StampedInt32.h"
 #include "arduino_msgs/StampedInt64.h"
 #include "arduino_msgs/StampedFloat32.h"
@@ -9,41 +10,61 @@
 
 using namespace std;
 
-ros::NodeHandle nh;
-
-ros::Publisher pubM_int64;
-ros::Publisher pubM_float64;
-
-
-ros::Publisher pubN_int32;
-ros::Publisher pubN_float32;
-
-
-ros::Subscriber subM_int64;
-ros::Subscriber subM_float64;
-
-ros::Subscriber subN_int32;
-ros::Subscriber subN_float32;
-
-#define FLOAT_MEGA 0
-#define INT_MEGA 1
-
-#define FLOAT_UNO 2
-#define INT_UNO 3
-
 
 #define X 0
 #define Y 1
-#define A 30.0f
 #define PI 3.14159265f
 
-#define ACABOU_GIRO 1
-#define ACABOU_ATUAL 2
+int STATE;
+#define ANDAR 1
 
+	ros::Publisher pubM_int64;
+	ros::Publisher pubM_float64;
+	ros::Publisher pubN_int32;
+	ros::Publisher pubN_float32;
 
-#define GIRA 300
-#define VEL_REF_DIR 301
-#define VEL_REF_ESQ 302
+	ros::Subscriber subM_int64;
+	ros::Subscriber subM_float64;
+	ros::Subscriber subN_int32;
+	ros::Subscriber subN_float32;
+
+/*---------------------------------------definicoes ROS-------------------------------------------*/
+
+/*------------------------------------------------------------------------------------------------*/
+
+/*-------------------------------------definicoes locomocao---------------------------------------*/
+
+	#define GIRA 300
+	#define VEL_REF_DIR 301
+	#define VEL_REF_ESQ 302
+	#define TRAVAR 303
+
+	#define ACABOU_GIRO 1
+	#define ACABOU_ATUAL 2
+	#define DISTANCIA_MIN_AJUSTE_VACA 30.0f
+/*------------------------------------------------------------------------------------------------*/
+
+/*-----------------------------------declaracoes das funcoes--------------------------------------*/
+	bool ehSonar(int id);
+	bool ehToque(int id);
+	void messageMInt64Cb( const arduino_msgs::StampedInt64& aM_int64_msg);
+	void messageMFloat64Cb( const arduino_msgs::StampedFloat64& aM_float64_msg);
+	void messageNInt32Cb( const arduino_msgs::StampedInt32& aN_int32_msg);
+	void messageNFloat32Cb( const arduino_msgs::StampedFloat32& aN_float32_msg);
+	void initROS();
+	void SendFloatMega(int id, double data);
+	void SendIntMega(int id, long long int data);	
+	void SendFloatUno(int id, float data);
+	void SendIntUno(int id, long int data);
+	void SendVel(float DIR, float ESQ);
+	void GiraEmGraus(long int angulo);
+	float DeGrausParaRadianos(float angulo);
+	float DeRadianosParaDegraus(float angulo);
+	vector<float> AnaliseLugarDaVaca(float x1, float y1, float x2, float y2, float theta);
+	void TrajetoriaSuaveAteAVaca(float x1, float y1, float x2, float y2, float theta);
+	void andaRetoDistVel(float vel, float dist);
+	void algoritmo();
+/*------------------------------------------------------------------------------------------------*/
 
 /*---------------------------------definicoes dos sensores US-------------------------------------*/
 
@@ -63,38 +84,54 @@ ros::Subscriber subN_float32;
 	//sinal chega do arduino com o id(USn) = (n-1) + NUM_IDEN_US... exemplo: id do US5 = (5-1) + 100 = 104
 
 	#define alfa_US 0.8f
-	//vector<float> sonar(QUANTIDADE_SENSOR_US);
-	struct Us{
-  		float valor;
-  		float valores[TAMANHO_MEDIANA];
-  		long long int vezes_lido;
+
+	class Us{
+  		public:
+	  		float valor;
+	  		vector<float> valores;
+	  		long long int vezes_lido;
+		Us(){
+			valores = vector<float>(TAMANHO_MEDIANA);
+		}
 	};
 
 	vector<Us> ultrassom(QUANTIDADE_SENSOR_US);
+/*------------------------------------------------------------------------------------------------*/
 
+/*-----------------------------definicoes dos sensores de TOQUE-----------------------------------*/
 
-/*-----------------------------------------------------------------------------------------------*/
+	#define TOQUE1 0
+	#define TOQUE2 1
+	#define TOQUE3 2
+	#define TOQUE4 3
+	#define TOQUE5 4
+	#define TOQUE6 5
+	#define TOQUE7 6
 
-/*----------------------------definicoes dos sensores de TOQUE-----------------------------------*/
+	#define TOQUE8 7
+	#define TOQUE9 8
 
-#define TOQUE1 0
-#define TOQUE2 1
-#define TOQUE3 2
-#define TOQUE4 3
-#define TOQUE5 4
-#define TOQUE6 5
-#define TOQUE7 6
+	#define NUM_IDEN_TOQUE 200
+	#define QUANTIDADE_SENSOR_TOQUE 9
 
-#define TOQUE8 7
-#define TOQUE9 8
+	vector<bool> toque(QUANTIDADE_SENSOR_TOQUE);//(QUANTIDADE_SENSOR_TOQUE, false);
+/*------------------------------------------------------------------------------------------------*/
 
-#define NUM_IDEN_TOQUE 200
-#define QUANTIDADE_SENSOR_TOQUE 9
+#define QUANTIDADE_MOTORES_GARRA  5
 
-vector<bool> toque(QUANTIDADE_SENSOR_TOQUE, false);
+class Ocupacao{
+	public:
+		bool giro;
+		vector<bool> motoresGarra;
+		float tempoAn;
+		bool andando;
+	Ocupacao(){
+		motoresGarra = vector<bool>(QUANTIDADE_MOTORES_GARRA);
+	}	
 
-/*-----------------------------------------------------------------------------------------------*/
+};
 
+Ocupacao ocupado;
 
 template<typename ItemType>
 unsigned Partition(ItemType* array, unsigned f, unsigned l, ItemType pivot)
@@ -177,7 +214,10 @@ void messageMFloat64Cb( const arduino_msgs::StampedFloat64& aM_float64_msg)
 
 void messageNInt32Cb( const arduino_msgs::StampedInt32& aN_int32_msg)
 {
-	
+	if (aN_int32_msg.id == ACABOU_GIRO)
+	{
+		ocupado.giro = false;
+	}
 }
 
 void messageNFloat32Cb( const arduino_msgs::StampedFloat32& aN_float32_msg)
@@ -185,21 +225,31 @@ void messageNFloat32Cb( const arduino_msgs::StampedFloat32& aN_float32_msg)
 
 }
 
-void initROS()
+void Delay(double time)
 {
+    double t1=0, t0=0;
+    t0 = ros::Time::now().toSec();
+    while((t1-t0)<time){
+        t1 = ros::Time::now().toSec();
+        ros::spinOnce();
+    }
+}
 
+void initROS(ros::NodeHandle nh)
+{
 	pubM_int64 = nh.advertise<arduino_msgs::StampedInt64>("raspberryM_int64", 1000);
 	pubM_float64 = nh.advertise<arduino_msgs::StampedFloat64>("raspberryM_float64", 1000);
-
-	pubN_int32 = nh.advertise<arduino_msgs::StampedInt32>("raspberryN_int32", 1000);
-	pubN_float32 = nh.advertise<arduino_msgs::StampedFloat32>("raspberryN_float32", 1000);
-
 	subM_int64 = nh.subscribe("arduinoM_int64", 1000, messageMInt64Cb);
 	subM_float64 = nh.subscribe("arduinoM_float64", 1000, messageMFloat64Cb);
 	
+	pubN_int32 = nh.advertise<arduino_msgs::StampedInt32>("raspberryN_int32", 1000);
+	pubN_float32 = nh.advertise<arduino_msgs::StampedFloat32>("raspberryN_float32", 1000);
 	subN_int32 = nh.subscribe("arduinoN_int32", 1000, messageNInt32Cb);
 	subN_float32 = nh.subscribe("arduinoN_float32", 1000, messageNFloat32Cb);
-
+	ocupado.giro = false;
+	fill(toque.begin(), toque.end(), false);
+	fill(ocupado.motoresGarra.begin(), ocupado.motoresGarra.end(), false);
+	ocupado.andando = false; 
 }
 
 void SendFloatMega(int id, double data)
@@ -227,13 +277,28 @@ void SendFloatUno(int id, float data)
 	pubN_float32.publish(float32_msg);
 }
 
-
 void SendIntUno(int id, long int data)
 {    
 	arduino_msgs::StampedInt32 int32_msg;
 	int32_msg.id = id;
 	int32_msg.data = data;
 	pubN_int32.publish(int32_msg);
+}
+
+void SendVel(float DIR, float ESQ)
+{
+	SendFloatUno(VEL_REF_DIR, DIR);
+	SendFloatUno(VEL_REF_ESQ, ESQ);
+}
+
+void GiraEmGraus(long int angulo)
+{
+	ocupado.giro = true;
+	SendIntUno(GIRA, angulo);
+	while(ocupado.giro)
+	{
+		ros::spinOnce();
+	}
 }
 
 float DeGrausParaRadianos(float angulo)
@@ -253,10 +318,10 @@ vector<float> AnaliseLugarDaVaca(float x1, float y1, float x2, float y2, float t
 	centro_da_entrada[X] = ((x2-x1)/2);
 	centro_da_entrada[Y] = ((y2-y1)/2);
 	distancia_direta = sqrt(pow(centro_da_entrada[X],2) + pow(centro_da_entrada[Y],2));
-	if (distancia_direta<A)
+	if (distancia_direta<DISTANCIA_MIN_AJUSTE_VACA)
 		///se ajeita (dar re e ganhar espaco para chegar melhor na vaca) e faz de novo o processo
-	ponto_do_viro[X] = centro_da_entrada[X] - (A*cos(DeGrausParaRadianos(90-theta)));
-	ponto_do_viro[Y] = centro_da_entrada[Y] - (A*sin(DeGrausParaRadianos(90-theta)));
+	ponto_do_viro[X] = centro_da_entrada[X] - (DISTANCIA_MIN_AJUSTE_VACA*cos(DeGrausParaRadianos(90-theta)));
+	ponto_do_viro[Y] = centro_da_entrada[Y] - (DISTANCIA_MIN_AJUSTE_VACA*sin(DeGrausParaRadianos(90-theta)));
 	return ponto_do_viro;
 }
 
@@ -265,36 +330,45 @@ void TrajetoriaSuaveAteAVaca(float x1, float y1, float x2, float y2, float theta
 	float alfa, distancia_ate_ponto_do_giro;
 	vector<float> v = AnaliseLugarDaVaca(x1, y1, x2, y2, theta);
 	alfa = DeRadianosParaDegraus(atan2(v[X],v[Y]));
-	
 	//gira(alfa)
 	distancia_ate_ponto_do_giro = sqrt(pow(v[X],2) + pow(v[Y],2));
 	//anda(distancia_ate_ponto_do_giro)
 	//gira(-(alfa+theta))
-	//anda(A)
+	//anda(DISTANCIA_MIN_AJUSTE_VACA)
 }
 
+void andaRetoDistVel(float vel, float dist)
+{
+	double tempo=0;
+	tempo = dist*2.682871209/vel; /// de rotacoes por segundo para metros por segundo
+	SendVel(vel, vel);
+	Delay(tempo);
+	SendVel(0.0,0.0);
+	SendFloatUno(TRAVAR,0);
+}
 
+void algoritmo()
+{
+	andaRetoDistVel(0.3, 0.3);
+	GiraEmGraus(90);
+	SendFloatUno(123,45);
+	Delay(2);
+}
 
 int main(int argc, char **argv)
 {
-	
 	ros::init(argc, argv, "first_test");
-	initROS();
-	ros::Rate loop_rate(10);	
-	int count = 0;
+	ros::NodeHandle nh;
+	initROS(nh);
+
+	ros::Rate loop_rate(10);
 	while (ros::ok())
 	{
-		if(count==30){
-			SendFloatUno(VEL_REF_DIR,0.8);
-			SendFloatUno(VEL_REF_ESQ,0.8);
-		}else if(count == 85){
-			SendFloatUno(VEL_REF_DIR,0);
-			SendFloatUno(VEL_REF_ESQ,0);
-			SendIntUno(GIRA, 90);
-		}	
+		Delay(3);
+		algoritmo();	
 		ros::spinOnce();
 		loop_rate.sleep();
-		++count;
 	}
+
 	return 0;
 }

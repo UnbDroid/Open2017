@@ -1,0 +1,15 @@
+///mostrar as portas dos arduinos para arrumar a comunicacao
+for sysdevpath in $(find /sys/bus/usb/devices/usb*/ -name dev); do     (         syspath="${sysdevpath%/dev}";         devname="$(udevadm info -q name -p $syspath)";         [[ "$devname" == "bus/"* ]] && continue;         eval "$(udevadm info -q property --export -p $syspath)";         [[ -z "$ID_SERIAL" ]] && continue;         echo "/dev/$devname - $ID_SERIAL";     ); done
+
+//caso estiver cortando*(caindo mto rapido)
+export LC_ALL=C
+
+//caso n compilar nem rodar no ssh 
+//entra no workspace
+source /devel/setup.bash
+
+///copiar coisas por ssh
+scp ~/catkin_abdullah/src/robot/src/first_test.cpp pi@192.168.10.2:~/catkin_ws/src/robot/src
+
+///caso tiver tentado conectar e n rolar no endereço 192.168.10.2
+//testa com .3 ou .4 e assim ate 9

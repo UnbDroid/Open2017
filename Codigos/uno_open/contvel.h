@@ -27,7 +27,7 @@
 
 #define VEL_REF_DIR 301
 #define VEL_REF_ESQ 302
-
+#define TRAVAR 303
 // Variáveis -----------------------------------------------------------------------------------------------
 
 
@@ -80,7 +80,8 @@ void doEncoder1A();
 
 //Funcoes de setup dos módulos --------------------------------------------------------------------------------------------------------------
 void settavaloresIniciaisParametros(){
-    // Encoders
+  travar ();
+  // Encoders
   encoder0Pos = 0; //esquerda
   encoder1Pos = 0; //direita
   voltas_esquerda = 0, voltas_esquerda_anterior = 0;

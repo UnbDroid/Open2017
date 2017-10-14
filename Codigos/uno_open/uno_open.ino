@@ -38,6 +38,8 @@ void messageFloat32Cb( const arduino_msgs::StampedFloat32& r_float32_msg)
      }      
      velocidade_ReferenciaEsquerda_anterior = velocidade_ReferenciaEsquerda;
      velocidade_ReferenciaEsquerda = abs(r_float32_msg.data)* 1.15;  //para poder corrigir para andar reto 
+  }else if(r_float32_msg.id == TRAVAR){
+      travar();
   }  
 }
 
@@ -48,7 +50,6 @@ void setup()
   initializeROS();
   STATE = 1;
   dir = 1;
-
 }
 
 void loop()
