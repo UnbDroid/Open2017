@@ -9,6 +9,10 @@
 #include <sstream>
 #include <math.h>
 #include <vector>
+#include "arduino_msgs/StampedInt32.h"
+#include "arduino_msgs/StampedInt64.h"
+#include "arduino_msgs/StampedFloat32.h"
+#include "arduino_msgs/StampedFloat64.h"
 
 //Macros:
 #define FOCAL_DIST 602.1197
@@ -34,7 +38,7 @@ arduino_msgs::StampedFloat64 vis_float64_msg;
 int frame_width;
 int frame_height;
 
-VideoCapture cam;
+VideoCapture cam(1);
 bool newValPosVaca = 0;
 
 int kblur = 5;
@@ -48,14 +52,7 @@ int poli = 5;
 void savePoints ();
 void CowRect(int, void*);
 void position (float line1size, float line2size, float px1, float px2);
-void findCow()
-
-void rosInit()
-{
-  pubVis_float64 = nh.advertise<arduino_msgs::StampedFloat64>("Vision_float64", 1000);
-  
-  subVis_int32 = nh.subscribe("Vision_int32", 1000, messageVisInt32Cb);
-}
+int findCow();
 
 bool posVaca(int id)
 {
@@ -76,34 +73,39 @@ void messageVisInt32Cb( const arduino_msgs::StampedInt32& vis_int32_msg)
   }
 }
 
+void rosInit()
+{
+  pubVis_float64 = nh.advertise<arduino_msgs::StampedFloat64>("Vision_float64", 1000);
+  
+  subVis_int32 = nh.subscribe("Vision_int32", 1000, messageVisInt32Cb);
+}
+
 void sendPosVaca()
 {
   vis_float64_msg.id == NUM_IDEN_VISION + 1;
   vis_float64_msg.data == x1;
-  pubVis_float64_err.publish(vis_float64_msg)
+  pubVis_float64.publish(vis_float64_msg);
 
   vis_float64_msg.id == NUM_IDEN_VISION + 2;
   vis_float64_msg.data == z1;
-  pubVis_float64_err.publish(vis_float64_msg)
+  pubVis_float64.publish(vis_float64_msg);
 
   vis_float64_msg.id == NUM_IDEN_VISION + 3;
   vis_float64_msg.data == x2;
-  pubVis_float64_err.publish(vis_float64_msg)
+  pubVis_float64.publish(vis_float64_msg);
 
   vis_float64_msg.id == NUM_IDEN_VISION + 4;
   vis_float64_msg.data == z2;
-  pubVis_float64_err.publish(vis_float64_msg)
+  pubVis_float64.publish(vis_float64_msg);
   
   vis_float64_msg.id == NUM_IDEN_VISION + 5;
   vis_float64_msg.data == err;
-  pubVis_float64_err.publish(vis_float64_msg)
+  pubVis_float64.publish(vis_float64_msg);
 }
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "find_ros");
-
-  cam(1);
 
   if(!cam.isOpened()) {printf("Impossível abrir camera\n"); return -1;}
 
@@ -113,7 +115,7 @@ int main(int argc, char **argv)
   {
     if(newValPosVaca == 1) // se tem uma nova leitura da posição da vaca
     {
-      sendPosVaca()
+      sendPosVaca();
       newValPosVaca = 0;
     }
 
@@ -122,7 +124,7 @@ int main(int argc, char **argv)
   }
 }
 
-void findCow(){
+int findCow(){
 
   struct timeval tempo1, tempo2;
   int tempo, loop = 1;
@@ -150,10 +152,11 @@ void findCow(){
   matretas = src.clone();
   matretangulos = src.clone();
 
+  
   if(src.empty())
   {
     //cout << "No more frames\n";
-    break;
+    return -1;
   }
 
   //cout << "OK Got frame\n";
