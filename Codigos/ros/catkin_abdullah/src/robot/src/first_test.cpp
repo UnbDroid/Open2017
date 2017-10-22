@@ -14,7 +14,7 @@ using namespace std;
 #define X 0
 #define Y 1
 #define PI 3.14159265f
-
+#define CORRECAO_GIRO 9
 int STATE;
 #define ANDAR 1
 
@@ -57,12 +57,12 @@ int STATE;
 	void SendFloatUno(int id, float data);
 	void SendIntUno(int id, long int data);
 	void SendVel(float DIR, float ESQ);
-	void GiraEmGraus(long int angulo);
+	void GiraEmGraus(float angulo);
 	float DeGrausParaRadianos(float angulo);
 	float DeRadianosParaDegraus(float angulo);
 	vector<float> AnaliseLugarDaVaca(float x1, float y1, float x2, float y2, float theta);
 	void TrajetoriaSuaveAteAVaca(float x1, float y1, float x2, float y2, float theta);
-	void andaRetoDistVel(float vel, float dist);
+	void andaRetoDistVel(float dist, float vel);
 	void algoritmo();
 /*------------------------------------------------------------------------------------------------*/
 
@@ -214,10 +214,7 @@ void messageMFloat64Cb( const arduino_msgs::StampedFloat64& aM_float64_msg)
 
 void messageNInt32Cb( const arduino_msgs::StampedInt32& aN_int32_msg)
 {
-	if (aN_int32_msg.id == ACABOU_GIRO)
-	{
-		ocupado.giro = false;
-	}
+	if (aN_int32_msg.id == ACABOU_GIRO)		ocupado.giro = false;
 }
 
 void messageNFloat32Cb( const arduino_msgs::StampedFloat32& aN_float32_msg)
@@ -291,10 +288,10 @@ void SendVel(float DIR, float ESQ)
 	SendFloatUno(VEL_REF_ESQ, ESQ);
 }
 
-void GiraEmGraus(long int angulo)
+void GiraEmGraus(float angulo)
 {
 	ocupado.giro = true;
-	SendIntUno(GIRA, angulo);
+	SendFloatUno(GIRA, angulo - (float(CORRECAO_GIRO)));
 	while(ocupado.giro)
 	{
 		ros::spinOnce();
@@ -337,10 +334,10 @@ void TrajetoriaSuaveAteAVaca(float x1, float y1, float x2, float y2, float theta
 	//anda(DISTANCIA_MIN_AJUSTE_VACA)
 }
 
-void andaRetoDistVel(float vel, float dist)
+void andaRetoDistVel(float dist, float vel)
 {
 	double tempo=0;
-	tempo = dist*2.682871209/vel; /// de rotacoes por segundo para metros por segundo
+	tempo = dist*2.682871209/abs(vel); /// de rotacoes por segundo para metros por segundo
 	SendVel(vel, vel);
 	Delay(tempo);
 	SendVel(0.0,0.0);
@@ -349,10 +346,13 @@ void andaRetoDistVel(float vel, float dist)
 
 void algoritmo()
 {
-	andaRetoDistVel(0.3, 0.3);
-	GiraEmGraus(90);
-	SendFloatUno(123,45);
+	//Delay(2);
+	//andaRetoDistVel(1,1);
 	Delay(2);
+	//andaRetoDistVel(1.1,1);
+	GiraEmGraus(180.0);
+	//andaRetoDistVel(1.1,1);
+	Delay(15);
 }
 
 int main(int argc, char **argv)

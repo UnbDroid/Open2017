@@ -124,7 +124,6 @@ void settavaloresIniciaisParametros(){
 }
 
 void startEncoder () {
-
   pinMode(encoder0PinA, INPUT);
   pinMode(encoder1PinA, INPUT);
   // Encoder Esquerda

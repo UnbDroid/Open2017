@@ -9,9 +9,10 @@
 #define ACABOU_GIRO 1
 #define ANGULO_ATUAL 2 
 
+bool gDir;
 bool InicioDoGiro;
 bool STATE = true;
-int graus;
+double graus;
 
 MPU6050 mpu;
 
@@ -43,8 +44,18 @@ void atualizaGiro()
   delay((timeStep*1000) - (millis() - timer));
 }
 
+bool casoDoGiro()
+{
+   //testar para valores e direcoes diferentes
+  if((graus<0 && gDir == 1) || (graus>0 && gDir == 0) )
+    return 1;
+  else if((graus<0 && gDir == 0) || (graus>0 && gDir == 1) )
+    return 0;
+}
+
 void Turn(){
-  if(InicioDoGiro){
+  if(InicioDoGiro)
+  {
     //noInterrupts();
     settavaloresIniciaisParametros();
     detachInterrupt(digitalPinToInterrupt(encoder0PinA));
@@ -55,17 +66,20 @@ void Turn(){
 	  yaw = 0;
   }
   atualizaGiro();
-  if(abs(roll)<abs(graus)){
-    atualizaGiro();
+  if(abs(roll)<abs(graus))
+  {
     atualizaGiro();
     sendInt32(ANGULO_ATUAL, roll);
-    if(graus<0){
+    if(casoDoGiro()){
       esquerdaEixo(VEL_GIRO_ESQ, VEL_GIRO_DIR);
     }else{
       direitaEixo(VEL_GIRO_ESQ, VEL_GIRO_DIR);
     }
-  }else{
+  }else
+  {
     //interrupts(); 
+    travar();
+    delay(100);
     settavaloresIniciaisParametros();
     attachInterrupt(digitalPinToInterrupt(encoder0PinA), doEncoderA, CHANGE);
     attachInterrupt(digitalPinToInterrupt(encoder1PinA), doEncoder1A, CHANGE);

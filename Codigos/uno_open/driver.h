@@ -4,7 +4,6 @@
 #define IN1_E 6
 #define IN2_E 4
 
-
 #define IN1_D 10
 #define IN2_D 9
 
@@ -31,7 +30,6 @@ bool dir;
 // Funcoes -----------------------------------------------------------------------------------------------------------
 
 void startDriver () {
-
   pinMode(IN1_E, OUTPUT);
   pinMode(IN2_E, OUTPUT);
   pinMode(IN1_D, OUTPUT);
@@ -63,12 +61,14 @@ void esquerdaEixo (int potEsquerda, int potDireita) {
 void frente(int potEsquerda, int potDireita) {
   analogWrite(PWM_E, potEsquerda);
   analogWrite(PWM_D, potDireita);
-  if(dir==1){  
+  if(dir==1){
+    sendFloat32(655, velocidade_ReferenciaEsquerda);  
     digitalWrite(IN1_E, HIGH);
     digitalWrite(IN2_E, LOW);
     digitalWrite(IN1_D, LOW);
     digitalWrite(IN2_D, HIGH);
   }else{
+    sendFloat32(656, velocidade_ReferenciaEsquerda);
     digitalWrite(IN1_E, LOW);
     digitalWrite(IN2_E, HIGH);
     digitalWrite(IN1_D, HIGH);
@@ -79,12 +79,15 @@ void frente(int potEsquerda, int potDireita) {
 void tras(int potEsquerda, int potDireita) {
   analogWrite(PWM_E, potEsquerda);
   analogWrite(PWM_D, potDireita);
-  if(dir==1){  
+  
+  if(dir==1){
+    sendFloat32(644, velocidade_ReferenciaEsquerda);  
     digitalWrite(IN1_E, LOW);
     digitalWrite(IN2_E, HIGH);
     digitalWrite(IN1_D, HIGH);
     digitalWrite(IN2_D, LOW);
   }else{
+    sendFloat32(646, velocidade_ReferenciaEsquerda);
     digitalWrite(IN1_E, HIGH);
     digitalWrite(IN2_E, LOW);
     digitalWrite(IN1_D, LOW);
