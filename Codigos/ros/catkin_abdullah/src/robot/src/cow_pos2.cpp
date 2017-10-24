@@ -24,7 +24,7 @@
 using namespace cv;
 using namespace std;
 
-Mat src, original, matblur, gradient, matretangulos, matprocessado, matxisdavaca, matretas, matfinal, tempBlackWhite;
+Mat src, original, matblur, gradient, matretangulos, matprocessado, matxisdavaca, matretas, matfinal, tempBlackWhite, binarizado, matcontornos, closing;
 vector<float> vecz1, vecx1, vecang1, vecz2, vecx2, vecang2, vecdist;
 Point2f pt1linha1(0.0,0.0), pt2linha1(0.0,0.0),pt1linha2(0.0,0.0), pt2linha2(0.0,0.0);
 double z1, x1, ang1, z2, x2, ang2, dist, err;
