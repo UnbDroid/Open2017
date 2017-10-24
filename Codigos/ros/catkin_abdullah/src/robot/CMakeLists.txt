@@ -205,7 +205,7 @@ include_directories(
 include_directories(include ${catkin_INCLUDE_DIRS})
 find_package(OpenCV REQUIRED )
 
-find_package(OpenCV 3.2.0)
+find_package(OpenCV 2.4.9.1)
 
 include_directories(  ${catkin_INCLUDE_DIRS}  ${OpenCV_INCLUDE_DIRS} )
 

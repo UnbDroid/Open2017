@@ -30,6 +30,8 @@ int STATE;
 	ros::Subscriber subN_float32;
 	ros::Subscriber subVis_float64;
 
+	double cow_pos_x1, cow_pos_x2, cow_pos_z1, cow_pos_z2, cow_pos_err;
+	
 /*---------------------------------------definicoes ROS-------------------------------------------*/
 
 /*------------------------------------------------------------------------------------------------*/
@@ -230,25 +232,30 @@ void messageVisFloat64Cb( const arduino_msgs::StampedFloat64& vis_float64_msg)
 {
 	if(vis_float64_msg.id == NUM_IDEN_VISION + 1)
 	{
-		cout << "Got x1: ";
-		cout << vis_float64_msg.data;
-		cout << "\n";
+		//cout << "Got x1: ";
+		cow_pos_x1 = vis_float64_msg.data;
+		//cout << vis_float64_msg.data;
+		//cout << "\n";
 	} else if(vis_float64_msg.id == NUM_IDEN_VISION + 2) {
-		cout << "Got z1: ";
-		cout << vis_float64_msg.data;
-		cout << "\n";
+		//cout << "Got z1: ";
+		cow_pos_z1 = vis_float64_msg.data;
+		//cout << vis_float64_msg.data;
+		//cout << "\n";
 	} else if(vis_float64_msg.id == NUM_IDEN_VISION + 3) {
-		cout << "Got x2: ";
-		cout << vis_float64_msg.data;
-		cout << "\n";
+		//cout << "Got x2: ";
+		cow_pos_x2 = vis_float64_msg.data;
+		//cout << vis_float64_msg.data;
+		//cout << "\n";
 	} else if(vis_float64_msg.id == NUM_IDEN_VISION + 4) {
-		cout << "Got z2: ";
-		cout << vis_float64_msg.data;
-		cout << "\n";
+		//cout << "Got z2: ";
+		cow_pos_z2 = vis_float64_msg.data;
+		//cout << vis_float64_msg.data;
+		//cout << "\n";
 	} else if(vis_float64_msg.id == NUM_IDEN_VISION + 5) {
-		cout << "Got error value: ";
-		cout << vis_float64_msg.data;
-		cout << "\n";
+		//cout << "Got error value: ";
+		cow_pos_err = vis_float64_msg.data;
+		//cout << vis_float64_msg.data;
+		//cout << "\n";
 	} else {
 		cout << "Got something weird\n";
 	}
@@ -409,10 +416,27 @@ int main(int argc, char **argv)
 	while (ros::ok())
 	{
 		SendIntVision(500, 0);
-		//Delay(3);
+		cout << "Calling vision algorithm\n";
+		Delay(2);
 		//algoritmo();	
 		ros::spinOnce();
 		loop_rate.sleep();
+		float xmed = (cow_pos_x1 + cow_pos_x2)/2;
+		float zmed = (cow_pos_z1 + cow_pos_z2)/2;
+		float mod = sqrt(pow(xmed, 2) + pow(zmed, 2));
+		float ang = 180*atan2(zmed, xmed)/3.1416;
+		cout << "xmed = ";
+		cout << xmed;
+		cout << "\n";
+		cout << "zmed = ";
+		cout << zmed;
+		cout << "\n";
+		cout << "mod = ";
+		cout << mod;
+		cout << "\n";
+		cout << "ang = ";
+		cout << ang;
+		cout << "\n";
 	}
 
 	return 0;

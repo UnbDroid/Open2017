@@ -1,5 +1,5 @@
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
+#include "/usr/include/opencv2/imgproc/imgproc.hpp"
+#include "/usr/include/opencv2/highgui/highgui.hpp"
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
@@ -7,13 +7,12 @@
 #include <sys/time.h>
 #include <ros/ros.h>
 #include <sstream>
-#include <math.h>
 #include <vector>
 #include "arduino_msgs/StampedInt32.h"
 #include "arduino_msgs/StampedInt64.h"
 #include "arduino_msgs/StampedFloat32.h"
 #include "arduino_msgs/StampedFloat64.h"
-#include <opencv2/videoio.hpp>
+#include "opencv2/opencv.hpp"
 
 //Macros:
 #define FOCAL_DIST 602.1197
@@ -67,7 +66,6 @@ void messageVisInt32Cb( const arduino_msgs::StampedInt32& vis_int32_msg)
 {
   if(posVaca(vis_int32_msg.id))
   {
-    findCow();
     newValPosVaca = 1;
   }
 }
@@ -114,39 +112,6 @@ void sendPosVaca()
   cout << "Sent error value: ";
   cout << err;
   cout << "\n\n";
-}
-
-int main(int argc, char **argv)
-{
-  ros::init(argc, argv, "find_ros");
-  ros::NodeHandle nh;
-  rosInit(nh);
-  
-  //VideoCapture cam(1);
-  //if(!cam.isOpened()) {printf("Impossível abrir camera\n"); return -1;}
-  src = imread("/home/bandreghetti/catkin_ws/src/robot/src/002.png");
-  if(src.empty())
-  {
-    cout << "Error loading image.\n";
-    return -1;
-  }
-
-  ros::Rate loop_rate(10);
-
-  while(ros::ok())
-  {
-    //cam >> src;
-    if(newValPosVaca == 1) // se tem uma nova leitura da posição da vaca
-    {
-      sendPosVaca();
-      newValPosVaca = 0;
-    }
-
-    ros::spinOnce();
-    loop_rate.sleep();
-  }
-
-  return 1;
 }
 
 int findCow(){
@@ -534,7 +499,7 @@ void CowRect(int, void*)
 
     position(pt2linha1.y-pt1linha1.y, pt2linha2.y-pt1linha2.y, pt1linha1.x,pt1linha2.x);
     matfinal = tempBlackWhite.clone();
-
+    imshow("Desenho", matfinal);
   }
   
   //cout << "Error = ";
@@ -589,4 +554,40 @@ void savePoints (){
   fprintf (fp, "vecdist\n");
   for (std::vector<float>::iterator it = vecdist.begin() ; it != vecdist.end(); ++it){    fprintf (fp, "%f\n", *it);  }
   fclose (fp);
+}
+
+int main(int argc, char **argv)
+{
+  ros::init(argc, argv, "find_ros");
+  ros::NodeHandle nh;
+  rosInit(nh);
+  
+  VideoCapture cam(0);
+  if(!cam.isOpened()) {printf("Impossível abrir camera\n"); return -1;}
+  //src = imread("/home/pi/catkin_ws/src/robot/src/002.png");
+  /*if(src.empty())
+  {
+    cout << "Error loading image.\n";
+    return -1;
+  }*/
+
+  ros::Rate loop_rate(10);
+
+  while(ros::ok())
+  {
+    cam >> src;
+    imshow("Entrada", src);
+    if(newValPosVaca == 1) // se tem uma nova leitura da posição da vaca
+    {
+	findCow();
+	sendPosVaca();
+      	cout << "Sent cow_pos values\n";
+	newValPosVaca = 0;
+    }
+    waitKey(1);
+    ros::spinOnce();
+    loop_rate.sleep();
+  }
+
+  return 1;
 }
