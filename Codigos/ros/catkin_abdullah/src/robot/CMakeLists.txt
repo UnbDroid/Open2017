@@ -221,8 +221,8 @@ add_executable(cow_pos_node src/cow_pos.cpp)
 target_link_libraries(cow_pos_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 #add_dependencies(cow_pos robot_generate_messages_cpp)
 
-add_executable(cow_pos2_node src/cow_pos2.cpp)
-target_link_libraries(cow_pos2_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+#add_executable(cow_pos2_node src/cow_pos2.cpp)
+#target_link_libraries(cow_pos2_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 #add_dependencies(cow_pos2 robot_generate_messages_cpp)
 
 find_package(catkin REQUIRED COMPONENTS roslaunch)
