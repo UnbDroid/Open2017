@@ -15,21 +15,31 @@
 
 #define PRECISAOX 2
 #define PRECISAOY 2
+#define ORIGEMY 0
+#define ORIGEMX 0
 #define FREQUENCIA 2000
 
-class Garra
+class GarraOpen
 {
   public:
-    Garra (int pinCot, int pinPul, int pinAtu, int pinDireX, int pinDireY);
+    void iniciaServos (int pinCot, int pinPul, int pinAtu);
+    void iniciaX (int pin_stp, int pin_dir, int pin_rst, int pin_slp, int pin_ena, int pin_m0, int pin_m1, int pin_m2, int fim_curso, int inicio_curso);
+    void iniciaY (int pin_stp, int pin_dir, int pin_rst, int pin_slp, int pin_ena, int pin_m0, int pin_m1, int pin_m2, int fim_curso, int inicio_curso);
+
+    void zeraGarra(bool novaPos);
+    
     void movePulso(bool pos);
     void moveAtuador(bool pos);
     void moveCotovelo(bool pos);
+    
     void moveX (int pos);
     void moveY (int pos);
+   
 
   private:
     Servo cotovelo, pulso, atuador;
-    int posX, posY, pinDirX, pinDirY, pinStpX, pinStpY;
+    int posX, stpX, dirX, rstX, slpX, enaX, m0X, m1X, m2X, passoAtualX, fimCursoX, inicioCursoX;
+    int posY, stpY, dirY, rstY, slpY, enaY, m0Y, m1Y, m2Y, passoAtualY, fimCursoY, inicioCursoY;
     bool posPulso, posAtuador, posCotovelo;
 };
 
