@@ -1,0 +1,7 @@
+Garra KEYWORD1
+
+movePulso KEYWORD2
+
+moveAtuador KEYWORD2
+
+moveCotovelo KEYWORD2
