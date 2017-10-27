@@ -4,8 +4,8 @@ import cv2
 cap = cv2.VideoCapture(1)
 
 # Define the codec and create VideoWriter object
-fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-out = cv2.VideoWriter('Videos/CowVid1.avi',fourcc, 24.0, (640,480), 1)
+fourcc = cv2.CV_FOURCC('D', 'I', 'V', 'X')
+out = cv2.VideoWriter('Videos/CupVid.avi',fourcc, 24.0, (640,480), 1)
 key = cv2.waitKey(1)
 while(key != 27):
     ret, frame = cap.read()
