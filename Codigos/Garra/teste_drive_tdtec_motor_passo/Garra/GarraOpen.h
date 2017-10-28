@@ -12,9 +12,9 @@
 
 #define COTOVELO_FRENTE 10
 #define COTOVELO_TRAS 168
-//0.18
-#define PRECISAOX 0.18
-#define PRECISAOY 0.0972
+
+#define PRECISAOX 0.0225 //0.18
+#define PRECISAOY 0.0243 //0.195
 #define ORIGEMY 0
 #define ORIGEMX 0
 #define FREQUENCIA 300.0

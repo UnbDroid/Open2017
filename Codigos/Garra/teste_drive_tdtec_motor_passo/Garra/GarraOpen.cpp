@@ -36,7 +36,7 @@ void GarraOpen::iniciaX (int pin_stp, int pin_dir, int pin_rst, int pin_slp, int
   delay (10);                // Atraso de 10 milisegundos
   digitalWrite(enaX, LOW);   // Ativa as saidas DRV8825
 
-  // Configura modo Passo completo (Full step)
+  // Configura modo 1/8 (1/8 step)
   digitalWrite(m0X, HIGH);
   digitalWrite(m1X, HIGH);
   digitalWrite(m2X, LOW);
@@ -68,9 +68,9 @@ void GarraOpen::iniciaY (int pin_stp, int pin_dir, int pin_rst, int pin_slp, int
   delay (10);                // Atraso de 10 milisegundos
   digitalWrite(enaY, LOW);   // Ativa as saidas DRV8825
 
-  // Configura modo Passo completo (Full step)
-  digitalWrite(m0Y, LOW);
-  digitalWrite(m1Y, LOW);
+  // Configura modo 1/8 (1/8 step)
+  digitalWrite(m0Y, HIGH);
+  digitalWrite(m1Y, HIGH);
   digitalWrite(m2Y, LOW);
 }
 
@@ -84,9 +84,9 @@ void GarraOpen::zeraGarra()
   for (int i = 1; i <= 10; i++) {
     periodo =  round (FREQUENCIA * 20 / i);
     digitalWrite(stpX, LOW);
-    //    digitalWrite(stpY, LOW);
+    digitalWrite(stpY, LOW);
     delayMicroseconds (periodo);
-    //    digitalWrite(stpY, HIGH);
+    digitalWrite(stpY, HIGH);
     digitalWrite(stpX, HIGH);
     delayMicroseconds (periodo);
   }
@@ -95,25 +95,25 @@ void GarraOpen::zeraGarra()
   while (xZerado)
   {
     digitalWrite(stpX, LOW);
-    //    digitalWrite(stpY, LOW);
+    digitalWrite(stpY, LOW);
     delayMicroseconds (FREQUENCIA * 2);
 
     digitalWrite(stpX, xZerado);
-    //    digitalWrite(stpY, yZerado);
+    digitalWrite(stpY, yZerado);
     delayMicroseconds (FREQUENCIA * 2);
 
     if (!digitalRead (inicioCursoX)) {
       xZerado = LOW;
     }
-    //    if (digitalRead (inicioCursoY))
-    //      yZerado = LOW;
+    if (digitalRead (inicioCursoY))
+      yZerado = LOW;
   }
   passoAtualX = 0;
   passoAtualY = 0;
 
-  //  pulso.write (PULSO_CIMA);
-  //  atuador.write (ATUADOR_ABRE);
-  //  cotovelo.write (COTOVELO_FRENTE);
+  pulso.write (PULSO_CIMA);
+  atuador.write (ATUADOR_ABRE);
+  cotovelo.write (COTOVELO_FRENTE);
 
   posPulso = false;
   posAtuador = false;
@@ -185,84 +185,162 @@ void GarraOpen::moveX (int novaPos)
   qtdPasso -= passoAtualX;
   int tempPasso = novaPos / PRECISAOX;
   passoAtualX = novaPos / PRECISAOX;
-  
+
   bool dir;
-  if (qtdPasso > 0) {
+  if (qtdPasso > 0) { //Se movimento positivo
     dir = 1;
   }
-  else {
+  else {  //Se movimento negativo
     dir = 0;
     qtdPasso = (-1) * qtdPasso;
   }
 
-  digitalWrite(dirX, dir);
-
-  Serial.println(qtdPasso, DEC);
-  if (dir)
+  /*/LOG
+    digitalWrite(dirX, dir);
+    Serial.println(qtdPasso, DEC);
+    if (dir)
     Serial.println("esquerda");
-  else {
+    else {
     Serial.println("direita");
-  }
+    }
+    //*/------ -
 
   unsigned long int periodo;
   unsigned long int temp = FREQUENCIA * qtdPasso;
+
+  //ACELERAÇÃO----------------------
   for (int i = 1; i <= 1 + qtdPasso / 3; i++) {
-    if (!(digitalRead (inicioCursoX) || digitalRead (fimCursoX))){
-      //passoAtual += 
-      break;
+    if (!(digitalRead (inicioCursoX) || digitalRead (fimCursoX))) { //Se chegou a um limite
+      if (dir)  //Se movimento era positivo
+        passoAtual =  tempPasso + i; //Adiciona quantidade andada
+      else      //Se movimento era negativo
+        passoAtual =  tempPasso - i; //Subtratai quantidade andada
+      break;  //Para movimentação
     }
-    periodo = round (temp / (i * 3));
-    Serial.println(periodo, DEC);
+    periodo = round (temp / (i * 3)); //Acelera
+    //Serial.println(periodo, DEC);
     digitalWrite(stpX, LOW);     // Pulso nível baixo
-    delayMicroseconds (periodo);   // MeioPeriodo de X microsegundos
+    delayMicroseconds (periodo); // MeioPeriodo de X microsegundos
     digitalWrite(stpX, HIGH);    // Pulso nível alto
-    delayMicroseconds (periodo);
+    delayMicroseconds (periodo); // MeioPeriodo de X microsegundos
   }
+
+  //VELOCIDADE DE CRUZEIRO-------------
   for (int i = 1; i <= 1 + qtdPasso / 3; i++) {
-    if (!(digitalRead (inicioCursoX) || digitalRead (fimCursoX))){
-      
-      break; 
+    if (!(digitalRead (inicioCursoX) || digitalRead (fimCursoX))) { //Se chegou a um limite
+      if (i > 1) {  //Se nao foi chegado ao fim do curso na aceleração
+        if (dir)  //Se movimento era positivo
+          passoAtual =  tempPasso + i; //Adiciona quantidade andada
+        else      //Se movimento era negativo
+          passoAtual =  tempPasso - i; //Subtratai quantidade andada
+      }
+      break;  //Para movimentação
     }
-    digitalWrite(stpX, LOW);            // Pulso nível baixo
-    delayMicroseconds (FREQUENCIA);   // MeioPeriodo de X microsegundos
-    digitalWrite(stpX, HIGH);           // Pulso nível alto
-    delayMicroseconds (FREQUENCIA);
+    digitalWrite(stpX, LOW);        // Pulso nível baixo
+    delayMicroseconds (FREQUENCIA); // MeioPeriodo de X microsegundos
+    digitalWrite(stpX, HIGH);       // Pulso nível alto
+    delayMicroseconds (FREQUENCIA); // MeioPeriodo de X microsegundos
   }
+
+  //DESACELERAÇÃO---------------------
   for (int i = 1; i <= 1 + qtdPasso / 3; i++) {
-    if (!(digitalRead (inicioCursoX) || digitalRead (fimCursoX)))
+    if (i > 1) {  //Se nao foi chegado ao fim do curso na aceleração
+      if (!(digitalRead (inicioCursoX) || digitalRead (fimCursoX))) { //Se chegou a um limite
+        if (dir)  //Se movimento era positivo
+          passoAtual =  tempPasso + i; //Adiciona quantidade andada
+        else      //Se movimento era negativo
+          passoAtual =  tempPasso - i; //Subtratai quantidade andada
+      }
       break;
-    periodo = FREQUENCIA * i;
-    Serial.println(periodo, DEC);
-    digitalWrite(stpX, LOW);            // Pulso nível baixo
-    delayMicroseconds (periodo);   // MeioPeriodo de X microsegundos
-    digitalWrite(stpX, HIGH);           // Pulso nível alto
-    delayMicroseconds (periodo);
+    }
+    periodo = FREQUENCIA * i;     //Desacelera
+    //Serial.println(periodo, DEC);
+    digitalWrite(stpX, LOW);      // Pulso nível baixo
+    delayMicroseconds (periodo);  // MeioPeriodo de X microsegundos
+    digitalWrite(stpX, HIGH);     // Pulso nível alto
+    delayMicroseconds (periodo);  // MeioPeriodo de X microsegundos
   }
-  
-  
 }
 
 void GarraOpen::moveY (int novaPos) {
   int qtdPasso = novaPos / PRECISAOY;
   qtdPasso -= passoAtualY;
+  int tempPasso = novaPos / PRECISAOY;
+  passoAtualY = novaPos / PRECISAOY;
 
-  bool dir = qtdPasso > 0 ? 1 : 0;
-  digitalWrite(dirY, dir);
+  bool dir;
+  if (qtdPasso > 0) { //Se movimento positivo
+    dir = 1;
+  }
+  else {  //Se movimento negativo
+    dir = 0;
+    qtdPasso = (-1) * qtdPasso;
+  }
+
+
+  /*/LOG
+    digitalWrite(dirY, dir);
+    Serial.println(qtdPasso, DEC);
+    if (dir)
+    Serial.println("esquerda");
+    else {
+    Serial.println("direita");
+    }
+    //*/------ -
 
   unsigned long int periodo;
   unsigned long int temp = FREQUENCIA * qtdPasso;
-  for (int i = 1; i <= 1 + qtdPasso / 2; i++) {
-    periodo = temp / (i * 2);
-    digitalWrite(stpY, LOW);            // Pulso nível baixo
-    delayMicroseconds (periodo);   // MeioPeriodo de X microsegundos
-    digitalWrite(stpY, HIGH);           // Pulso nível alto
-    delayMicroseconds (periodo);
+
+  //ACELERAÇÃO----------------------
+  for (int i = 1; i <= 1 + qtdPasso / 3; i++) {
+    if (!(digitalRead (inicioCursoY) || digitalRead (fimCursoY))) { //Se chegou a um limite
+      if (dir)  //Se movimento era positivo
+        passoAtual =  tempPasso + i; //Adiciona quantidade andada
+      else      //Se movimento era negativo
+        passoAtual =  tempPasso - i; //Subtratai quantidade andada
+      break;  //Para movimentação
+    }
+    periodo = round (temp / (i * 3)); //Acelera
+    //Serial.println(periodo, DEC);
+    digitalWrite(stpY, LOW);     // Pulso nível baixo
+    delayMicroseconds (periodo); // MeioPeriodo de X microsegundos
+    digitalWrite(stpY, HIGH);    // Pulso nível alto
+    delayMicroseconds (periodo); // MeioPeriodo de X microsegundos
   }
-  for (int i = 1; i <= 1 + qtdPasso / 2; i++) {
-    periodo = FREQUENCIA * i;
-    digitalWrite(stpY, LOW);            // Pulso nível baixo
-    delayMicroseconds (periodo);   // MeioPeriodo de X microsegundos
-    digitalWrite(stpY, HIGH);           // Pulso nível alto
-    delayMicroseconds (periodo);
+
+  //VELOCIDADE DE CRUZEIRO-------------
+  for (int i = 1; i <= 1 + qtdPasso / 3; i++) {
+    if (!(digitalRead (inicioCursoY) || digitalRead (fimCursoY))) { //Se chegou a um limite
+      if (i > 1) {  //Se nao foi chegado ao fim do curso na aceleração
+        if (dir)  //Se movimento era positivo
+          passoAtual =  tempPasso + i; //Adiciona quantidade andada
+        else      //Se movimento era negativo
+          passoAtual =  tempPasso - i; //Subtratai quantidade andada
+      }
+      break;  //Para movimentação
+    }
+    digitalWrite(stpY, LOW);        // Pulso nível baixo
+    delayMicroseconds (FREQUENCIA); // MeioPeriodo de X microsegundos
+    digitalWrite(stpY, HIGH);       // Pulso nível alto
+    delayMicroseconds (FREQUENCIA); // MeioPeriodo de X microsegundos
+  }
+
+  //DESACELERAÇÃO---------------------
+  for (int i = 1; i <= 1 + qtdPasso / 3; i++) {
+    if (i > 1) {  //Se nao foi chegado ao fim do curso na aceleração
+      if (!(digitalRead (inicioCursoY) || digitalRead (fimCursoY))) { //Se chegou a um limite
+        if (dir)  //Se movimento era positivo
+          passoAtual =  tempPasso + i; //Adiciona quantidade andada
+        else      //Se movimento era negativo
+          passoAtual =  tempPasso - i; //Subtratai quantidade andada
+      }
+      break;
+    }
+    periodo = FREQUENCIA * i;     //Desacelera
+    //Serial.println(periodo, DEC);
+    digitalWrite(stpY, LOW);      // Pulso nível baixo
+    delayMicroseconds (periodo);  // MeioPeriodo de X microsegundos
+    digitalWrite(stpY, HIGH);     // Pulso nível alto
+    delayMicroseconds (periodo);  // MeioPeriodo de X microsegundos
   }
 }
