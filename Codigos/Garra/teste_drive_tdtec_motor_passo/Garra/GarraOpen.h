@@ -12,12 +12,12 @@
 
 #define COTOVELO_FRENTE 10
 #define COTOVELO_TRAS 168
-
-#define PRECISAOX 2
-#define PRECISAOY 2
+//0.18
+#define PRECISAOX 0.18
+#define PRECISAOY 0.0972
 #define ORIGEMY 0
 #define ORIGEMX 0
-#define FREQUENCIA 2000
+#define FREQUENCIA 300.0
 
 class GarraOpen
 {
@@ -26,12 +26,14 @@ class GarraOpen
     void iniciaX (int pin_stp, int pin_dir, int pin_rst, int pin_slp, int pin_ena, int pin_m0, int pin_m1, int pin_m2, int fim_curso, int inicio_curso);
     void iniciaY (int pin_stp, int pin_dir, int pin_rst, int pin_slp, int pin_ena, int pin_m0, int pin_m1, int pin_m2, int fim_curso, int inicio_curso);
 
-    void zeraGarra(bool novaPos);
+    void zeraGarra();
     
     void movePulso(bool pos);
     void moveAtuador(bool pos);
     void moveCotovelo(bool pos);
-    
+
+    void passoX();
+    void passoY();
     void moveX (int pos);
     void moveY (int pos);
    
