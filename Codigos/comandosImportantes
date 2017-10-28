@@ -9,7 +9,8 @@ export LC_ALL=C
 source /devel/setup.bash
 
 ///copiar coisas por ssh
-scp ~/catkin_abdullah/src/robot/src/first_test.cpp pi@192.168.10.2:~/catkin_ws/src/robot/src
+cp -a ~/catkin_abdullah/src/. pi@192.168.10.2:~/catkin_ws/
+scp ~/catkin_abdullah/src/robot/src/main_code.cpp pi@192.168.10.2:~/catkin_ws/src/robot/src
 
 ///caso tiver tentado conectar e n rolar no endereço 192.168.10.2
 //testa com .3 ou .4 e assim ate 9

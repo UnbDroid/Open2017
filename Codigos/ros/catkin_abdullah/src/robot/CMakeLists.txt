@@ -209,8 +209,8 @@ find_package(OpenCV 2.4.9.1)
 
 include_directories(  ${catkin_INCLUDE_DIRS}  ${OpenCV_INCLUDE_DIRS} )
 
-add_executable(first_test_node src/first_test.cpp)
-target_link_libraries(first_test_node ${catkin_LIBRARIES})
+add_executable(main_node src/main_code.cpp)
+target_link_libraries(main_node ${catkin_LIBRARIES})
 #add_dependencies(first_test robot_generate_messages_cpp)
 
 add_executable(vision_test_node src/vision_test.cpp)

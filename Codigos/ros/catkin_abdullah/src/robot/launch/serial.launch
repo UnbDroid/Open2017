@@ -7,5 +7,5 @@
     <param name="port" value="/dev/ttyUSB0"/>
     <param name="baud" value="115200"/>
   </node>
-  <node name="first_test_node" pkg="robot" type="first_test_node" />
+  <node name="main_node" pkg="robot" type="main_node" />
 </launch>
