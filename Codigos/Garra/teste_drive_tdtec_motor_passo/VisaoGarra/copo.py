@@ -4,11 +4,15 @@ import cv2
 def corrigePosGarra (posicao_garra):
     return 0
 
+def andaRobo ():
+    return 0
+
 def identificaCopo (imagem):
     area = cv2.sumElems (imagem)
+    cv2.namedWindow('ide', cv2.WND_PROP_OPENGL)
     cv2.imshow('ide', imagem)
     print (area[0])
-    if area[0] > 30:
+    if area[0] > 10:
         return 1
     return 0
 
@@ -17,14 +21,14 @@ def copoFora (posGarra, cap):
     delay = 2000
     cv2.waitKey()
     cv2.waitKey()
-    for x in range(0, 10):
-    #while(1):
+    while(1):
         try:
             ret, frame = cap.read()
+            cv2.namedWindow('frame', cv2.WND_PROP_OPENGL)
             cv2.imshow('frame', frame)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-            x2Esq = posicao_garra - 80 #210
+            x2Esq = posicao_garra #210
             x1Esq = x2Esq - 80 #290
             y1Esq = 350
             y2Esq = 450
@@ -50,21 +54,9 @@ def copoFora (posGarra, cap):
 
             copoNaDireita= identificaCopo (binDirH)
 
-            if copoNaDireita == 0 and copoNaEsquerda == 0:
-                return 1
-
-            elif copoNaDireita == 1:
-                posicao_garra += 20
-                corrigePosGarra (posicao_garra)
-
-            elif copoNaEsquerda == 1:
-                posicao_garra -= 20
-                corrigePosGarra (posicao_garra)
-
-
             char = cv2.waitKey(delay)
 
-
+            cv2.namedWindow('imgCopoDireita', cv2.WND_PROP_OPENGL)
             cv2.imshow('imgCopoDireita', imgCopoDireita)
 
             cv2.namedWindow('Hsvframe', cv2.WINDOW_OPENGL)
@@ -73,6 +65,21 @@ def copoFora (posGarra, cap):
             cv2.namedWindow('thresh1', cv2.WINDOW_OPENGL)
             bin2 = binDirH*255
             cv2.imshow('thresh1',bin2)
+
+            cv2.namedWindow('thresh3', cv2.WINDOW_OPENGL)
+            bin3 = binEsqH*255
+            cv2.imshow('thresh3',bin3)
+
+            if copoNaDireita == 0 and copoNaEsquerda == 0:
+                return 1
+
+            elif copoNaDireita == 1:
+                posicao_garra += 10
+                corrigePosGarra (posicao_garra)
+
+            elif copoNaEsquerda == 1:
+                posicao_garra -= 10
+                corrigePosGarra (posicao_garra)
 
 
             if char == ord(','):
@@ -88,13 +95,40 @@ def copoFora (posGarra, cap):
             return 0
     # When everything done, release the capture
 
+
+def copoDentro (posicao_garra, cap):
+    posicao_garra = posGarra
+    while(1):
+        try:
+            ret, frame = cap.read()
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+            x2 = posicao_garra-20 #210
+            x1 = posicao_garra+20 #290
+            y1 = 400
+            y2 = 500
+
+            imgCopoDentro = frame [y1:y2, x1:x2]
+
+            canalH,canalS,canalV = cv2.split(imgCopoDentro)
+            ret, binH = cv2.threshold(canalH,100,1, cv2.THRESH_BINARY_INV)
+
+            copoDentro = identificaCopo (binH)
+
+            if copoDentro == 0:
+                return 1
+
+            else:
+                andaRobo ()
+
+        except Exception as e:
+            print 'Erro'
+            return 0
+
 cap = cv2.VideoCapture('o1.avi')
+
 a = copoFora (285, cap)
-
-if (a == 1):
-    print 'tudoCerto\n'
-else:
-    print 'seFodeo'
-
+if (a==1):
+    b = copoDentro (cap)
 cap.release()
 cv2.destroyAllWindows()
