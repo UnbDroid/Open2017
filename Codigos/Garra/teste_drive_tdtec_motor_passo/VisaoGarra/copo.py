@@ -125,7 +125,7 @@ def copoDentro (posicao_garra, cap):
             print 'Erro'
             return 0
 
-cap = cv2.VideoCapture('v.avi')
+cap = cv2.VideoCapture('video.mp4')
 
 if(cap.isOpened()):
     a = copoFora (285, cap)

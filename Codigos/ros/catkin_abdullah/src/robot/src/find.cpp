@@ -1,43 +1,24 @@
-#include "/usr/include/opencv2/imgproc/imgproc.hpp"
-#include "/usr/include/opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <iostream>
 #include <math.h>
 #include <sys/time.h>
-#include <ros/ros.h>
-#include <sstream>
-#include <vector>
-#include "arduino_msgs/StampedInt32.h"
-#include "arduino_msgs/StampedInt64.h"
-#include "arduino_msgs/StampedFloat32.h"
-#include "arduino_msgs/StampedFloat64.h"
-#include "opencv2/opencv.hpp"
 
 //Macros:
 #define FOCAL_DIST 602.1197
 #define X_ERROR_MI 0.129152		//The x axis position of the analised line have an error that grows linearly (approximately) with the distance in the z axis
 #define X_ERROR_CONST -0.6332	//Mathematically: error = z1*X_ERROR_MI + X_ERROR_CONSTANT
 
-#define NUM_IDEN_VISION 500
-
 using namespace cv;
 using namespace std;
 
-Mat src, original, matblur, gradient, matretangulos, matprocessado, matxisdavaca, matretas, matfinal, tempBlackWhite, binarizado, matcontornos, closing;
+Mat src, original, closing, matblur, gradient, binarizado, matcontornos, matretangulos, matprocessado, matxisdavaca, matretas, matfinal;
 vector<float> vecz1, vecx1, vecang1, vecz2, vecx2, vecang2, vecdist;
 Point2f pt1linha1(0.0,0.0), pt2linha1(0.0,0.0),pt1linha2(0.0,0.0), pt2linha2(0.0,0.0);
-double z1, x1, ang1, z2, x2, ang2, dist, err;
-float max_error = 0.2;
-
-ros::Publisher pubVis_float64;
-ros::Subscriber subVis_int32;
-arduino_msgs::StampedFloat64 vis_float64_msg;
-
-int frame_width;
-int frame_height;
-
-bool newValPosVaca = 0;
+float z1, x1, ang1, z2, x2, ang2, dist;
 
 int kblur = 5;
 int ero1 = 4;
@@ -46,170 +27,118 @@ int razaoRetangulosVaca = 165;
 int razaoRetangulosVaca2 = 170;
 int poli = 5;
 
-
 void savePoints ();
 void CowRect(int, void*);
 void position (float line1size, float line2size, float px1, float px2);
-int findCow();
 
-bool posVaca(int id)
-{
-  if (id == NUM_IDEN_VISION)
-  {
-    return true;
-  } else {
-    return false;
-  }
-}
-
-void messageVisInt32Cb( const arduino_msgs::StampedInt32& vis_int32_msg)
-{
-  if(posVaca(vis_int32_msg.id))
-  {
-    newValPosVaca = 1;
-  }
-}
-
-void rosInit(ros::NodeHandle nh)
-{
-  pubVis_float64 = nh.advertise<arduino_msgs::StampedFloat64>("Vision_float64", 1000); 
-  subVis_int32 = nh.subscribe("Vision_int32", 1000, messageVisInt32Cb);
-}
-
-void sendPosVaca()
-{
-  vis_float64_msg.id = NUM_IDEN_VISION + 1;
-  vis_float64_msg.data = x1;
-  pubVis_float64.publish(vis_float64_msg);
-  cout << "Sent x1: ";
-  cout << x1;
-  cout << "\n";
-
-  vis_float64_msg.id = NUM_IDEN_VISION + 2;
-  vis_float64_msg.data = z1;
-  pubVis_float64.publish(vis_float64_msg);
-  cout << "Sent z1: ";
-  cout << z1;
-  cout << "\n";
-
-  vis_float64_msg.id = NUM_IDEN_VISION + 3;
-  vis_float64_msg.data = x2;
-  pubVis_float64.publish(vis_float64_msg);
-  cout << "Sent x2: ";
-  cout << x2;
-  cout << "\n";
-
-  vis_float64_msg.id = NUM_IDEN_VISION + 4;
-  vis_float64_msg.data = z2;
-  pubVis_float64.publish(vis_float64_msg);
-  cout << "Sent z2: ";
-  cout << z2;
-  cout << "\n";
-
-  vis_float64_msg.id = NUM_IDEN_VISION + 5;
-  vis_float64_msg.data = err;
-  pubVis_float64.publish(vis_float64_msg);
-  cout << "Sent error value: ";
-  cout << err;
-  cout << "\n\n";
-}
-
-int findCow(){
-
+int main( int argc, char** argv ){
+  cout << "teste";
+  //Calcula tempo de execução
+  //CvCapture* cam;
+  //cam = cvCreateCameraCapture( 0 );
+  VideoCapture cam(0);
+  //VideoCapture cam("CowVid1.avi");
+  //if(!cam) {printf("Impossível abrir camera\n"); return -1;}
+  if(!cam.isOpened()) {printf("Impossível abrir camera\n"); return -1;}
   struct timeval tempo1, tempo2;
   int tempo, loop = 1;
-
   char tecla;
-
-  frame_width = src.cols;
-  frame_height = src.rows;
-
-  //VideoWriter video("out.avi",CV_FOURCC('M','J','P','G'),10, Size(frame_width,frame_height),true);
-
+  cam >> src;
+  //src = cvQueryFrame( cam );
+  closing = Mat::zeros(src.rows, src.cols, CV_8UC1);
   matblur = Mat::zeros(src.rows, src.cols, CV_8UC1);
   gradient = Mat::zeros(src.rows, src.cols, CV_8UC1);
   matfinal = Mat::zeros(src.rows, src.cols, CV_8UC1);
 
+  while(loop)
+	{
+    gettimeofday (&tempo1, NULL);
+  		//Captura frame
+		//src = cvQueryFrame( cam );
+    cam >> src;
 
-  gettimeofday (&tempo1, NULL);
-	//Captura frame
-  //cout << "Getting frame...\n";
+    matprocessado =src.clone();
+    matxisdavaca = src.clone();
+    matretas = src.clone();
+    binarizado = src.clone();
+    matretangulos = src.clone();
+    matcontornos = src.clone();
 
-  matprocessado = src.clone();
-  matxisdavaca = src.clone();
-  matretas = src.clone();
-  matretangulos = src.clone();
+    if (src.empty())
+      break;
+		//Imprime captura na tela
+    //namedWindow ("Entrada", CV_WINDOW_NORMAL);
+		//imshow( "Entrada", src );
 
-  
-  if(src.empty())
-  {
-    //cout << "No more frames\n";
-    return -1;
+      /// Load an image
+    original = src.clone();
+    if( !src.data )
+     return -1;
+
+    //Equaliza cie ------------------------------
+    Mat cie, cie2;
+    //Converte para Cie L*a*b
+    cvtColor(src,cie,CV_BGR2Lab);
+    vector<Mat> channels2;
+    //Separa canais da imagem
+    split(cie,channels2);
+    //Equaliza canal L
+    equalizeHist(channels2[0],channels2[0]);
+    //Reune canais novamente
+    merge(channels2,cie);
+
+    //Converte para BGR
+    cvtColor(cie,src,CV_Lab2BGR);
+    cie2 = src.clone();
+    ///namedWindow ("Equalizada", CV_WINDOW_NORMAL);
+		//imshow( "Equalizada", src );
+
+    namedWindow( "Trackbar", CV_WINDOW_NORMAL );
+
+    createTrackbar( "Blur (opcional):", "Trackbar", &kblur, 20, CowRect );
+    createTrackbar( "Closing: ", "Trackbar", &ero1,  20,CowRect );
+    createTrackbar( "Gradient: ", "Trackbar", &ero2,  20, CowRect );
+    createTrackbar( "Razao largura/100: ", "Trackbar", &razaoRetangulosVaca, 300, CowRect );
+    createTrackbar( "Razao altura/100: ", "Trackbar", &razaoRetangulosVaca2, 300, CowRect );
+    createTrackbar( "poligono: ", "Trackbar", &poli, 50, CowRect );
+
+    //Encontra retangulos da vaca
+    CowRect(0, 0);
+
+
+    //Calcula tempo de execução
+    gettimeofday (&tempo2, NULL);
+    tempo = (int)(1000000*(tempo2.tv_sec-tempo1.tv_sec)+(tempo2.tv_usec-tempo1.tv_usec));
+    printf ("%d microseg\n%f Hertz\n", tempo, (1000000.0/tempo));
+
+    tecla = cvWaitKey(15);
+    if(tecla == 13){
+      tecla = cvWaitKey(15);
+      waitKey(0);
+    }
+    if (tecla == 's'){
+      printf ("save\n");
+      imwrite ("cena/equalizada.jpg" , cie2);
+      imwrite ("cena/original.jpg" , original);
+      imwrite ("cena/closing.jpg" ,closing);
+      imwrite ("cena/matblur.jpg" ,matblur);
+      imwrite ("cena/gradient.jpg" ,gradient);
+      imwrite ("cena/binarizado.jpg" ,binarizado);
+      imwrite ("cena/matcontornos.jpg" ,matcontornos);
+      imwrite ("cena/matretangulos.jpg" ,matretangulos);
+      imwrite ("cena/matprocessado.jpg" ,matprocessado);
+      imwrite ("cena/matxisdavaca.jpg" ,matxisdavaca);
+      imwrite ("cena/matretas.jpg" ,matretas);
+      imwrite ("cena/matfinal.jpg" ,matfinal);
+      waitKey(0);
+    }
+    if(tecla == 27)
+      return 0;
   }
 
-  //cout << "OK Got frame\n";
-
-	//Imprime captura na tela
-  
-  //cout << "Showing src at the 'Entrada' window...\n";
-	//imshow("Entrada", src);
-  //cout << "OK imshow worked\n";
-  //Load an image
-  original = src.clone();
-  if( !src.data ) {return -1;}
-
-  //cout << "Equalizing image...\n";
-
-  //Equaliza cie ------------------------------
-  Mat cie, cie2;
-  cvtColor(src,cie,CV_BGR2Lab);//Converte para Cie L*a*b
-  vector<Mat> channels2;
-  split(cie,channels2);//Separa canais da imagem
-  equalizeHist(channels2[0],channels2[0]);//Equaliza canal L
-  merge(channels2,cie);//Reune canais novamente
-
-  //Converte para BGR
-  cvtColor(cie,src,CV_Lab2BGR);
-  cie2 = src.clone();
-
-  //cout << "OK Image is equalized\n";
-
-  /*
-
-  namedWindow( "Trackbar", CV_WINDOW_NORMAL );
-  createTrackbar( "Blur (opcional):",     "Trackbar", &kblur,               20,  CowRect );
-  createTrackbar( "Closing: ",            "Trackbar", &ero1,                20,  CowRect );
-  createTrackbar( "Gradient: ",           "Trackbar", &ero2,                20,  CowRect );
-  createTrackbar( "Razao largura/100: ",  "Trackbar", &razaoRetangulosVaca, 300, CowRect );
-  createTrackbar( "Razao altura/100: ",   "Trackbar", &razaoRetangulosVaca2,300, CowRect );
-  createTrackbar( "poligono: ",           "Trackbar", &poli,                50,  CowRect );
-  
-  */
-
-  //cout << "Calling CowRect function\n";
-
-  //Encontra retangulos da vaca
-  CowRect(0, 0);
-
-  //cout << "OK CowRect went through\n";
-
-  //Calcula tempo de execução
-  gettimeofday (&tempo2, NULL);
-  tempo = (int)(1000000*(tempo2.tv_sec-tempo1.tv_sec)+(tempo2.tv_usec-tempo1.tv_usec));
-  printf ("%d microseg\n%f Hertz\n", tempo, (1000000.0/tempo));
-
-  //cout << "WaitKey moment\n";
-
-  tecla = waitKey(10);
-  if(tecla == 27)
-  {
-    return 0;
-  }
-
-  //cout << "End of WaitKey moment\n";
-
-  //waitKey(0);
+  waitKey(0);
   //savePoints ();
+  return 0;
 }
 
 void CowRect(int, void*)
@@ -226,6 +155,7 @@ void CowRect(int, void*)
   closing = src2.clone();
   Mat copia = src2.clone();
 
+  
   //Aplica blur se desejado
   if (kblur>0)
     blur(src2, src2, Size(kblur*2-1,kblur*2-1) );
@@ -626,93 +556,69 @@ void CowRect(int, void*)
     position (pt2linha1.y-pt1linha1.y, pt2linha2.y-pt1linha2.y, pt1linha1.x,pt1linha2.x);
     matfinal = tempBlackWhite.clone();
   }
-  
-  //cout << "Error = ";
-  //cout << err;
-  //cout << '\n';
-  //cout << "Max Error = ";
-  //cout << max_error;
-  //cout << '\n';
-  
-  /*
-  if(err < max_error)
-  {
-    cout << "Got it!\n";
-    imshow("Output", tempBlackWhite);
-  } else {
-    cout << "Oops, didn't get it right\n";
-    cvtColor(tempBlackWhite, tempBlackWhite, CV_RGB2GRAY);
-    imshow("Output", tempBlackWhite);
-  }*/
-  
+
+  imshow( "Output", tempBlackWhite);
 }
 
 void position (float line1size, float line2size, float px1, float px2){
   float xcenter = src.cols/2;
   z1 = (FOCAL_DIST*10.0)/line1size;
-  z2 = (FOCAL_DIST*10.0)/line2size;
-  float X1_CENTER_ERROR = X_ERROR_MI*z1 + X_ERROR_CONST;
-  float X2_CENTER_ERROR = X_ERROR_MI*z2 + X_ERROR_CONST;
-  x1 = (z1*(px1-xcenter)/FOCAL_DIST)-X1_CENTER_ERROR;
-  x2 = (z2*(px2-xcenter)/FOCAL_DIST)-X2_CENTER_ERROR;
-  dist = pow(pow(z1-z2, 2) + pow(x1-x2, 2) , 0.5)+3.0;
+	z2 = (FOCAL_DIST*10.0)/line2size;
+	float X1_CENTER_ERROR = X_ERROR_MI*z1 + X_ERROR_CONST;
+	float X2_CENTER_ERROR = X_ERROR_MI*z2 + X_ERROR_CONST;
+	x1 = (z1*(px1-xcenter)/FOCAL_DIST)-X1_CENTER_ERROR;
+	x2 = (z2*(px2-xcenter)/FOCAL_DIST)-X2_CENTER_ERROR;
+	dist = pow( pow(z1-z2, 2) + pow(x1-x2, 2) , 0.5)+3.0;
+	ang1 = tan(x1/z1);
+  ang2 = tan(x2/z2);
+
+  if(dist == dist)
+  {
+    if (abs(dist-36) < 2 )
+      imshow( "Saida", matfinal);
+    else
+      imshow( "Saida", src);
+  }
   
-  err = abs(dist-36.0)/36.0;
+  vecz1.push_back(z1);
+  vecx1.push_back(x1);
+  vecang1.push_back(ang1);
+  vecz2.push_back(z2);
+  vecx2.push_back(x2);
+  vecang2.push_back(ang2);
+  vecdist.push_back(dist);
 }
 
 void savePoints (){
   FILE *fp;
   fp = fopen("pontos.txt", "w");
-
   fprintf (fp, "vecz1\n");
-  for (std::vector<float>::iterator it = vecz1.begin() ; it != vecz1.end(); ++it){fprintf (fp, "%f\n", *it); }
-  fprintf (fp, "vecx1\n");
-  for (std::vector<float>::iterator it =  vecx1.begin() ; it != vecx1.end(); ++it){ fprintf (fp, "%f\n", *it); }
-  fprintf (fp, "vecang1\n");
-  for (std::vector<float>::iterator it = vecang1.begin() ; it != vecang1.end(); ++it){    fprintf (fp, "%f\n", *it);  }
-  fprintf (fp, "vecz2\n");
-  for (std::vector<float>::iterator it =  vecz2.begin() ; it != vecz2.end(); ++it){    fprintf (fp, "%f\n", *it);  }
-  fprintf (fp, "vecx2\n");
-  for (std::vector<float>::iterator it = vecx2.begin() ; it != vecx2.end(); ++it){    fprintf (fp, "%f\n", *it);  }
-  fprintf (fp, "vecang2\n");
-  for (std::vector<float>::iterator it = vecang2.begin() ; it != vecang2.end(); ++it){    fprintf (fp, "%f\n", *it);  }
-  fprintf (fp, "vecdist\n");
-  for (std::vector<float>::iterator it = vecdist.begin() ; it != vecdist.end(); ++it){    fprintf (fp, "%f\n", *it);  }
-  fclose (fp);
-}
-
-int main(int argc, char **argv)
-{
-  ros::init(argc, argv, "find_ros");
-  ros::NodeHandle nh;
-  rosInit(nh);
-  
-  VideoCapture cam(0);
-  if(!cam.isOpened()) {printf("Impossível abrir camera\n"); return -1;}
-  //src = imread("/home/pi/catkin_ws/src/robot/src/002.png");
-  /*if(src.empty())
-  {
-    cout << "Error loading image.\n";
-    return -1;
-  }*/
-
-  ros::Rate loop_rate(10);
-
-  while(ros::ok())
-  {
-    cam >> src;
-    imshow("Entrada", src);
-    if(newValPosVaca == 1) // se tem uma nova leitura da posição da vaca
-    {
-      findCow();
-      sendPosVaca();
-      cout << "Sent cow_pos values\n";
-      newValPosVaca = 0;
-    }
-    waitKey(1);
-    ros::spinOnce();
-    loop_rate.sleep();
+  for (std::vector<float>::iterator it = vecz1.begin() ; it != vecz1.end(); ++it){
+    fprintf (fp, "%f\n", *it);
   }
-
-  return 1;
+  fprintf (fp, "vecx1\n");
+  for (std::vector<float>::iterator it =  vecx1.begin() ; it != vecx1.end(); ++it){
+    fprintf (fp, "%f\n", *it);
+  }
+  fprintf (fp, "vecang1\n");
+  for (std::vector<float>::iterator it = vecang1.begin() ; it != vecang1.end(); ++it){
+    fprintf (fp, "%f\n", *it);
+  }
+  fprintf (fp, "vecz2\n");
+  for (std::vector<float>::iterator it =  vecz2.begin() ; it != vecz2.end(); ++it){
+    fprintf (fp, "%f\n", *it);
+  }
+  fprintf (fp, "vecx2\n");
+  for (std::vector<float>::iterator it = vecx2.begin() ; it != vecx2.end(); ++it){
+    fprintf (fp, "%f\n", *it);
+  }
+  fprintf (fp, "vecang2\n");
+  for (std::vector<float>::iterator it = vecang2.begin() ; it != vecang2.end(); ++it){
+    fprintf (fp, "%f\n", *it);
+  }
+  fprintf (fp, "vecdist\n");
+  for (std::vector<float>::iterator it = vecdist.begin() ; it != vecdist.end(); ++it){
+    fprintf (fp, "%f\n", *it);
+  }
+  fclose (fp);
 }

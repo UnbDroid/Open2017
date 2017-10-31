@@ -1,5 +1,3 @@
-#include "/usr/include/opencv2/imgproc/imgproc.hpp"
-#include "/usr/include/opencv2/highgui/highgui.hpp"
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
@@ -174,7 +172,7 @@ int findCow(){
 
   //cout << "OK Image is equalized\n";
 
-  /*
+  
 
   namedWindow( "Trackbar", CV_WINDOW_NORMAL );
   createTrackbar( "Blur (opcional):",     "Trackbar", &kblur,               20,  CowRect );
@@ -184,7 +182,7 @@ int findCow(){
   createTrackbar( "Razao altura/100: ",   "Trackbar", &razaoRetangulosVaca2,300, CowRect );
   createTrackbar( "poligono: ",           "Trackbar", &poli,                50,  CowRect );
   
-  */
+  
 
   //cout << "Calling CowRect function\n";
 
