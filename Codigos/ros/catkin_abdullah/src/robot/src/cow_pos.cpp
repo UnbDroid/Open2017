@@ -458,34 +458,48 @@ void CowRect(int, void*)
     float porcentagem = 0.8;
 
     if (tipo==5){
-      //*
+      /*
       pt1linha1.x = pt1linha1.x*(1-porcentagem)+porcentagem*vsd[marcador].x;
       pt1linha1.y = pt1linha1.y*(1-porcentagem)+porcentagem*(vsd[marcador].x*supa1+supa0);
       pt2linha1.x = pt2linha1.x*(1-porcentagem)+porcentagem*vid[marcador].x;
       pt2linha1.y = pt2linha1.y*(1-porcentagem)+porcentagem*(vid[marcador].y);//*a1+a0);
+      */
+      pt1linha1.x = vsd[marcador].x;
+      pt1linha1.y = (vsd[marcador].x*supa1+supa0);
+      pt2linha1.x = vid[marcador].x;
+      pt2linha1.y = (vid[marcador].y);
 
       //Verificação Not a Number
       if (pt1linha1.y!=pt1linha1.y) pt1linha1.y = vsd[marcador].y;
     }
     else{
-      //*
+      /*
       pt1linha1.x = pt1linha1.x*(1-porcentagem)+porcentagem*vse[marcador].x;
       pt1linha1.y = pt1linha1.y*(1-porcentagem)+porcentagem*(vse[marcador].x*supa1+supa0);
       pt2linha1.x = pt2linha1.x*(1-porcentagem)+porcentagem*vie[marcador].x;
       pt2linha1.y = pt2linha1.y*(1-porcentagem)+porcentagem*(vie[marcador].y);//x*a1+a0);
-      //*/
+      */
+      pt1linha1.x = vse[marcador].x;
+      pt1linha1.y = (vse[marcador].x*supa1+supa0);
+      pt2linha1.x = vie[marcador].x;
+      pt2linha1.y = (vie[marcador].y);
+
 
       //Verificação Not a Number
       if (pt1linha1.y!=pt1linha1.y) pt1linha1.y = vse[marcador].x*supa1+supa0;
     }
 
     line(tempBlackWhite, pt1linha1, pt2linha1, Scalar (0, 20, 255), 2, 8 );
-    ///*
+    /*
     pt1linha2.x = pt1linha2.x*(1-porcentagem)+porcentagem*vsd[minmarcador].x;
     pt1linha2.y = pt1linha2.y*(1-porcentagem)+porcentagem*(vsd[minmarcador].x*supa1+supa0);
     pt2linha2.x = pt2linha2.x*(1-porcentagem)+porcentagem*vid[minmarcador].x;
     pt2linha2.y = pt2linha2.y*(1-porcentagem)+porcentagem*(vid[minmarcador].y);
-    //*/
+    */
+    pt1linha2.x = vsd[minmarcador].x;
+    pt1linha2.y = (vsd[minmarcador].x*supa1+supa0);
+    pt2linha2.x = vid[minmarcador].x;
+    pt2linha2.y = (vid[minmarcador].y);
 
     //Verificação Not a Number
     if (pt1linha2.x!=pt1linha2.x) pt1linha2.x = vsd[minmarcador].x;
