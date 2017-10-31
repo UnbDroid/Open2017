@@ -397,7 +397,7 @@ void CowRect(int, void*)
 
   //Desenha
   Point2f pt2;
-  if (max>3){
+  if(max>3){
     Scalar color = Scalar (rng.uniform(0,255),rng.uniform(0,255),rng.uniform(0,255));
 
     m = (vse[marcador].y-vsd[marcador].y)/(vse[marcador].x-vsd[marcador].x);//Calcula coeficiente angular do retangulo K
@@ -415,8 +415,8 @@ void CowRect(int, void*)
     float comparacao;
     if (cor>cor2){ //quadrado branco
       tipo = 5;
-      comparacao = 3*largura+vsd[marcador].x;  }
-    else{ //quadrado preto
+      comparacao = 3*largura+vsd[marcador].x;
+    } else { //quadrado preto
       comparacao = 3.4*largura+vse[marcador].x;
       tipo = 4;
     }
