@@ -214,7 +214,7 @@ void CowRect(int, void*)
 {
   vector<Point2f> vsd,vid,vie,vse;  //Cria vetores para guardar melhores retangulos
   vector<int> hit, retangulosVaca, tempInt;                  //Contador
-  vector<vector<Point> > contours;  //Para encontrar contornos
+  vector< vector<Point> > contours;  //Para encontrar contornos
   vector<Vec4i> hierarchy;          //Para encontrar contornos
 
   //Aplica filtro morphologico do tipo closing
@@ -239,7 +239,7 @@ void CowRect(int, void*)
   findContours( binary, contours, hierarchy,CV_RETR_LIST,CV_CHAIN_APPROX_NONE);
 
   //Variaveis contorno
-  vector<vector<Point> > contours_poly( contours.size());//Para encontrar contornos
+  vector< vector<Point> > contours_poly( contours.size());//Para encontrar contornos
   vector<RotatedRect>    minRect( contours.size());      //Para encontrar retangulo rotacionado
 
 
@@ -407,7 +407,7 @@ void CowRect(int, void*)
 
     //Verifica se primeiro quadrado é branco ou preto
     pt.x = (vse[marcador].x + largura/2);
-    pt.y = (vse[marcador].y+ altura/2);
+    pt.y = (vse[marcador].y + altura/2);
     Vec3b pixel = copiaEqualizada.at<Vec3b>(pt.y, pt.x);
     int cor = pixel[0]+pixel[1]+pixel[2];
     pixel = copiaEqualizada.at<Vec3b>(pt.y, pt.x+largura);
@@ -437,7 +437,7 @@ void CowRect(int, void*)
     supsumxy = vsd[marcador].x * vsd[marcador].y;
 
     for (int l = 0; l<retangulosVaca.size() ; l++){
-        line(tempBlackWhite, vsd[retangulosVaca[l]], vid[retangulosVaca[l]], Scalar (55, 250, 25), 1, 8 );
+        line(tempBlackWhite, vsd[retangulosVaca[l]], vie[retangulosVaca[l]], Scalar (55, 250, 25), 1, 8 );
         if (abs(comparacao-vsd[retangulosVaca[l]].x)<mindiferenca){
           mindiferenca = abs(deltaX-largura-vsd[retangulosVaca[l]].x);
           minmarcador = retangulosVaca[l];
@@ -577,7 +577,19 @@ int main(int argc, char **argv)
     imshow("Entrada", src);
     if(newValPosVaca == 1) // se tem uma nova leitura da posição da vaca
     {
-	findCow();
+	err = 1;
+	int cont = 0;
+	while(err > 0.2){
+	    cam >> src;
+    	    imshow("Entrada", src);
+	    findCow();
+	    cont += 1;
+	    cout << cont;
+	    cout << "\n";
+	    cout << err;
+	    cout << "\n";
+	    waitKey(1);
+	}
 	sendPosVaca();
       	cout << "Sent cow_pos values\n";
 	newValPosVaca = 0;
@@ -589,3 +601,12 @@ int main(int argc, char **argv)
 
   return 1;
 }
+/*
+cv::Rect a;
+a.x = offset_x;
+a.y = offset_y;
+a.width = largura do retangulo
+a.height = altura do retangulo
+
+cv::Mat crop = src(a)
+*/
