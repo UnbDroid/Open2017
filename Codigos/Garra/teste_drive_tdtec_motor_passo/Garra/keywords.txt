@@ -1,13 +1,24 @@
-Garra KEYWORD1
-iniciaServos  KEYWORD2
-iniciaX KEYWORD2
-iniciaY KEYWORD2
-zeraGarra KEYWORD2
-moveX  KEYWORD2
-moveY KEYWORD2
+#######################################
+# Syntax Coloring Map Servo
+#######################################
 
-movePulso KEYWORD2
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
 
-moveAtuador KEYWORD2
+Servo	KEYWORD1
 
-moveCotovelo KEYWORD2
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+attach	KEYWORD2
+detach	KEYWORD2
+write	KEYWORD2
+read	KEYWORD2
+attached	KEYWORD2
+writeMicroseconds	KEYWORD2
+readMicroseconds	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
