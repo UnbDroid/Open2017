@@ -402,7 +402,8 @@ void CowRect(int, void*)
 
     m = (vse[marcador].y-vsd[marcador].y)/(vse[marcador].x-vsd[marcador].x);//Calcula coeficiente angular do retangulo K
     a = vsd[marcador].y-vsd[marcador].x*m;//Calcula coeficiente linear do retangulo K
-    largura = norm(vie[marcador]-vid[marcador]),altura = norm(vsd[marcador]-vid[marcador]);//Calcula largura do retangulo K
+    largura = norm(vie[marcador]-vid[marcador]); //Calcula largura do retangulo K
+    altura = norm(vsd[marcador]-vid[marcador]); //Calcula altura do retangulo K
 
 
     //Verifica se primeiro quadrado é branco ou preto
@@ -455,6 +456,21 @@ void CowRect(int, void*)
     supa1 = (supcontador * supsumxy - supsumx*supsumy)/denom;
     supa0 = (supsumy - supa1*supsumx)/supcontador;
 
+    largura = norm(vie[minmarcador]-vid[minmarcador])
+    altura = norm(vsd[minmarcador]-vid[minmarcador]);
+    pt.x = (vsd[minmarcador].x - largura/2);
+    pt.y = (vsd[minmarcador].y + altura/2);
+    pixel = copiaEqualizada.at<Vec3b>(pt.y, pt.x);
+    cor = pixel[0]+pixel[1]+pixel[2];
+    pixel = copiaEqualizada.at<Vec3b>(pt.y, pt.x - largura);
+    cor2 = pixel[0]+pixel[1]+pixel[2];
+    int square2_is_white;
+    if (cor>cor2){ //quadrado branco
+      square2_is_white = 1;
+    } else { //quadrado preto
+      square2_is_white = 0;
+    }
+
     float porcentagem = 0.8;
 
     if (tipo==5){
@@ -490,17 +506,33 @@ void CowRect(int, void*)
     }
 
     line(tempBlackWhite, pt1linha1, pt2linha1, Scalar (0, 20, 255), 2, 8 );
-    /*
-    pt1linha2.x = pt1linha2.x*(1-porcentagem)+porcentagem*vsd[minmarcador].x;
-    pt1linha2.y = pt1linha2.y*(1-porcentagem)+porcentagem*(vsd[minmarcador].x*supa1+supa0);
-    pt2linha2.x = pt2linha2.x*(1-porcentagem)+porcentagem*vid[minmarcador].x;
-    pt2linha2.y = pt2linha2.y*(1-porcentagem)+porcentagem*(vid[minmarcador].y);
-    */
-    pt1linha2.x = vsd[minmarcador].x;
-    //pt1linha2.y = (vsd[minmarcador].x*supa1+supa0);
-    pt1linha2.y = vsd[minmarcador].y;
-    pt2linha2.x = vid[minmarcador].x;
-    pt2linha2.y = (vid[minmarcador].y);
+    if(square2_is_white)
+    {
+      /*
+      pt1linha2.x = pt1linha2.x*(1-porcentagem)+porcentagem*vsd[minmarcador].x;
+      pt1linha2.y = pt1linha2.y*(1-porcentagem)+porcentagem*(vsd[minmarcador].x*supa1+supa0);
+      pt2linha2.x = pt2linha2.x*(1-porcentagem)+porcentagem*vid[minmarcador].x;
+      pt2linha2.y = pt2linha2.y*(1-porcentagem)+porcentagem*(vid[minmarcador].y);
+      */
+      pt1linha2.x = vsd[minmarcador].x;
+      //pt1linha2.y = (vsd[minmarcador].x*supa1+supa0);
+      pt1linha2.y = vsd[minmarcador].y;
+      pt2linha2.x = vid[minmarcador].x;
+      pt2linha2.y = (vid[minmarcador].y);
+    } else {
+      /*
+      pt1linha2.x = pt1linha2.x*(1-porcentagem)+porcentagem*vsd[minmarcador].x;
+      pt1linha2.y = pt1linha2.y*(1-porcentagem)+porcentagem*(vsd[minmarcador].x*supa1+supa0);
+      pt2linha2.x = pt2linha2.x*(1-porcentagem)+porcentagem*vid[minmarcador].x;
+      pt2linha2.y = pt2linha2.y*(1-porcentagem)+porcentagem*(vid[minmarcador].y);
+      */
+      pt1linha2.x = vse[minmarcador].x;
+      //pt1linha2.y = (vsd[minmarcador].x*supa1+supa0);
+      pt1linha2.y = vse[minmarcador].y;
+      pt2linha2.x = vie[minmarcador].x;
+      pt2linha2.y = (vie[minmarcador].y);
+    }
+
 
     //Verificação Not a Number
     if (pt1linha2.x!=pt1linha2.x) pt1linha2.x = vsd[minmarcador].x;
