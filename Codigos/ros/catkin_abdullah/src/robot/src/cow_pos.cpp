@@ -419,9 +419,9 @@ void CowRect(int, void*)
       //comparacao = 3*largura+vsd[marcador].x;
       comparacao = 4*largura+vsd[marcador].x;
     } else { //quadrado preto
-      //comparacao = 3.4*largura+vse[marcador].x;
-      comparacao = 5*largura+vse[marcador].x;
       tipo = 4;
+      //comparacao = 3.4*largura+vse[marcador].x;
+      comparacao = 3*largura+vsd[marcador].x;
     }
 
     double deltaX = tipo*largura+vsd[marcador].x;
@@ -432,7 +432,7 @@ void CowRect(int, void*)
     ysup = m*vsd[marcador].x+a;
 
     int contador = 1, supcontador = 1;
-    float sumx, sumxsq, sumy, sumxy, a0, a1, denom, supsumx, supsumxsq, supsumy, supsumxy, supa0, supa1;
+    float sumx, sumxsq, sumy, sumxy, a0, a1, denom, supsumx, supsumxsq, supsumy, supsumxy, supa0, supa1, diffdir, diffesq;
 
     supsumx = vsd[marcador].x;
     supsumxsq = pow(vsd[marcador].x, 2);
@@ -441,10 +441,18 @@ void CowRect(int, void*)
 
     for (int l = 0; l<retangulosVaca.size() ; l++){
         line(tempBlackWhite, vsd[retangulosVaca[l]], vie[retangulosVaca[l]], Scalar (55, 250, 25), 1, 8 );
-        if (abs(comparacao-vsd[retangulosVaca[l]].x)<mindiferenca){
-        //if (abs(deltaX-largura-vsd[retangulosVaca[l]].x)<mindiferenca){
-          mindiferenca = abs(comparacao-vsd[retangulosVaca[l]].x);
-          //mindiferenca = abs(deltaX-largura-vsd[retangulosVaca[l]].x);
+        diffdir = norm(vsd[retangulosVaca[l]]-comparacao);
+        //diffdir = abs(comparacao-vsd[retangulosVaca[l]].x);
+        //diffdir = abs(deltaX-largura-vsd[retangulosVaca[l]].x);
+        diffesq = norm(vse[retangulosVaca[l]]-comparacao);
+        //diffesq = abs(comparacao-vsd[retangulosVaca[l]].x);
+        //diffesq = abs(deltaX-largura-vsd[retangulosVaca[l]].x);
+        if(diffdir < mindiferenca){
+          mindiferenca = diffdir;
+          minmarcador = retangulosVaca[l];
+        }
+        if(diffesq < mindiferenca){
+          mindiferenca = diffesq;
           minmarcador = retangulosVaca[l];
         }
         if (abs(vse[retangulosVaca[l]].y-vse[marcador].y)<altura){
