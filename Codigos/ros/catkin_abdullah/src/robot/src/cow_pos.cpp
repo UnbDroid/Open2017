@@ -499,9 +499,10 @@ void CowRect(int, void*)
       pt2linha1.y = pt2linha1.y*(1-porcentagem)+porcentagem*(vid[marcador].y);//*a1+a0);
       */
       pt1linha1.x = vsd[marcador].x;
-      pt1linha1.y = (vsd[marcador].x*supa1+supa0);
+      //pt1linha1.y = (vsd[marcador].x*supa1+supa0);
+      pt1linha1.y = vsd[marcador].y;
       pt2linha1.x = vid[marcador].x;
-      pt2linha1.y = (vid[marcador].y);
+      pt2linha1.y = vid[marcador].y;
 
       //Verificação Not a Number
       if (pt1linha1.y!=pt1linha1.y) pt1linha1.y = vsd[marcador].y;
@@ -514,9 +515,10 @@ void CowRect(int, void*)
       pt2linha1.y = pt2linha1.y*(1-porcentagem)+porcentagem*(vie[marcador].y);//x*a1+a0);
       */
       pt1linha1.x = vse[marcador].x;
-      pt1linha1.y = (vse[marcador].x*supa1+supa0);
+      //pt1linha1.y = (vse[marcador].x*supa1+supa0);
+      pt1linha1.y = vse[marcador].y;
       pt2linha1.x = vie[marcador].x;
-      pt2linha1.y = (vie[marcador].y);
+      pt2linha1.y = vie[marcador].y;
 
 
       //Verificação Not a Number
