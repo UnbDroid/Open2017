@@ -416,9 +416,11 @@ void CowRect(int, void*)
     float comparacao;
     if (cor>cor2){ //quadrado branco
       tipo = 5;
-      comparacao = 3*largura+vsd[marcador].x;
+      //comparacao = 3*largura+vsd[marcador].x;
+      comparacao = 4*largura+vsd[marcador].x;
     } else { //quadrado preto
-      comparacao = 3.4*largura+vse[marcador].x;
+      //comparacao = 3.4*largura+vse[marcador].x;
+      comparacao = 5*largura+vse[marcador].x;
       tipo = 4;
     }
 
@@ -439,10 +441,10 @@ void CowRect(int, void*)
 
     for (int l = 0; l<retangulosVaca.size() ; l++){
         line(tempBlackWhite, vsd[retangulosVaca[l]], vie[retangulosVaca[l]], Scalar (55, 250, 25), 1, 8 );
-        //if (abs(comparacao-vsd[retangulosVaca[l]].x)<mindiferenca){
-        if (abs(deltaX-largura-vsd[retangulosVaca[l]].x){
-          //mindiferenca = abs(comparacao-vsd[retangulosVaca[l]].x);
-          mindiferenca = abs(deltaX-largura-vsd[retangulosVaca[l]].x);
+        if (abs(comparacao-vsd[retangulosVaca[l]].x)<mindiferenca){
+        //if (abs(deltaX-largura-vsd[retangulosVaca[l]].x)<mindiferenca){
+          mindiferenca = abs(comparacao-vsd[retangulosVaca[l]].x);
+          //mindiferenca = abs(deltaX-largura-vsd[retangulosVaca[l]].x);
           minmarcador = retangulosVaca[l];
         }
         if (abs(vse[retangulosVaca[l]].y-vse[marcador].y)<altura){
