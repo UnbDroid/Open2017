@@ -414,14 +414,19 @@ void CowRect(int, void*)
     pixel = copiaEqualizada.at<Vec3b>(pt.y, pt.x+largura);
     int cor2 = pixel[0]+pixel[1]+pixel[2];
     float comparacao;
+    Point2f anchor;
     if (cor>cor2){ //quadrado branco
       tipo = 5;
       //comparacao = 3*largura+vsd[marcador].x;
       comparacao = 4*largura+vsd[marcador].x;
+      anchor.x = 4*largura+vsd[marcador].x;
+      anchor.y = vsd[marcador].y;
     } else { //quadrado preto
       tipo = 4;
       //comparacao = 3.4*largura+vse[marcador].x;
       comparacao = 3*largura+vsd[marcador].x;
+      anchor.x = 3*largura+vsd[marcador].x;
+      anchor.y = vsd[marcador].y;
     }
 
     double deltaX = tipo*largura+vsd[marcador].x;
@@ -441,10 +446,10 @@ void CowRect(int, void*)
 
     for (int l = 0; l<retangulosVaca.size() ; l++){
         line(tempBlackWhite, vsd[retangulosVaca[l]], vie[retangulosVaca[l]], Scalar (55, 250, 25), 1, 8 );
-        diffdir = norm(vsd[retangulosVaca[l]]-comparacao);
+        diffdir = norm(vsd[retangulosVaca[l]]-anchor);
         //diffdir = abs(comparacao-vsd[retangulosVaca[l]].x);
         //diffdir = abs(deltaX-largura-vsd[retangulosVaca[l]].x);
-        diffesq = norm(vse[retangulosVaca[l]]-comparacao);
+        diffesq = norm(vse[retangulosVaca[l]]-anchor);
         //diffesq = abs(comparacao-vsd[retangulosVaca[l]].x);
         //diffesq = abs(deltaX-largura-vsd[retangulosVaca[l]].x);
         if(diffdir < mindiferenca){
