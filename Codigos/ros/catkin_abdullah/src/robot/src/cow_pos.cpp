@@ -446,6 +446,7 @@ void CowRect(int, void*)
 
     for (int l = 0; l<retangulosVaca.size() ; l++){
         line(tempBlackWhite, vsd[retangulosVaca[l]], vie[retangulosVaca[l]], Scalar (55, 250, 25), 1, 8 );
+        line(tempBlackWhite, vse[retangulosVaca[l]], vid[retangulosVaca[l]], Scalar (55, 250, 25), 1, 8 );
         diffdir = norm(vsd[retangulosVaca[l]]-anchor);
         //diffdir = abs(comparacao-vsd[retangulosVaca[l]].x);
         //diffdir = abs(deltaX-largura-vsd[retangulosVaca[l]].x);
