@@ -456,7 +456,7 @@ void CowRect(int, void*)
     supa1 = (supcontador * supsumxy - supsumx*supsumy)/denom;
     supa0 = (supsumy - supa1*supsumx)/supcontador;
 
-    largura = norm(vie[minmarcador]-vid[minmarcador])
+    largura = norm(vie[minmarcador]-vid[minmarcador]);
     altura = norm(vsd[minmarcador]-vid[minmarcador]);
     pt.x = (vsd[minmarcador].x - largura/2);
     pt.y = (vsd[minmarcador].y + altura/2);
