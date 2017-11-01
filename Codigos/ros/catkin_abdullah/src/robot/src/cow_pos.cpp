@@ -497,7 +497,8 @@ void CowRect(int, void*)
     pt2linha2.y = pt2linha2.y*(1-porcentagem)+porcentagem*(vid[minmarcador].y);
     */
     pt1linha2.x = vsd[minmarcador].x;
-    pt1linha2.y = (vsd[minmarcador].x*supa1+supa0);
+    //pt1linha2.y = (vsd[minmarcador].x*supa1+supa0);
+    pt1linha2.y = vsd[minmarcador].y;
     pt2linha2.x = vid[minmarcador].x;
     pt2linha2.y = (vid[minmarcador].y);
 
