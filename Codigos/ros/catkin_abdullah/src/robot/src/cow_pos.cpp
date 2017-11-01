@@ -439,7 +439,9 @@ void CowRect(int, void*)
 
     for (int l = 0; l<retangulosVaca.size() ; l++){
         line(tempBlackWhite, vsd[retangulosVaca[l]], vie[retangulosVaca[l]], Scalar (55, 250, 25), 1, 8 );
-        if (abs(comparacao-vsd[retangulosVaca[l]].x)<mindiferenca){
+        //if (abs(comparacao-vsd[retangulosVaca[l]].x)<mindiferenca){
+        if (abs(deltaX-largura-vsd[retangulosVaca[l]].x){
+          //mindiferenca = abs(comparacao-vsd[retangulosVaca[l]].x);
           mindiferenca = abs(deltaX-largura-vsd[retangulosVaca[l]].x);
           minmarcador = retangulosVaca[l];
         }
