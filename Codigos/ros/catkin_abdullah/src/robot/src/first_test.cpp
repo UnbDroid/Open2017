@@ -1,22 +1,18 @@
-#include "ros/ros.h"
-#include "ros/time.h"
-#include "arduino_msgs/StampedInt32.h"
-#include "arduino_msgs/StampedInt64.h"
-#include "arduino_msgs/StampedFloat32.h"
-#include "arduino_msgs/StampedFloat64.h"
-#include <sstream>
-#include <math.h>
-#include <vector>
+	#include <sstream>
+	#include <math.h>
+	#include <vector>
 
-using namespace std;
+	using namespace std;
 
-
-#define PI 3.14159265f
-#define CORRECAO_GIRO 9
-int STATE;
-#define ANDAR 1
-#define GIRAR 2
-
+	#define PI 3.14159265f
+/*---------------------------------------definicoes ROS-------------------------------------------*/
+	#include "ros/ros.h"
+	#include "ros/time.h"
+	#include "arduino_msgs/StampedInt32.h"
+	#include "arduino_msgs/StampedInt64.h"
+	#include "arduino_msgs/StampedFloat32.h"
+	#include "arduino_msgs/StampedFloat64.h"	
+	
 	ros::Publisher pubM_int64;
 	ros::Publisher pubM_float64;
 	ros::Publisher pubN_int32;
@@ -26,24 +22,64 @@ int STATE;
 	ros::Subscriber subM_float64;
 	ros::Subscriber subN_int32;
 	ros::Subscriber subN_float32;
+/*------------------------------------------------------------------------------------------------*/
+/*-----------------------------------definicoes mapeamento----------------------------------------*/
+	#define CASA_INICIAL_I 3
+	#define CASA_INICIAL_J 4
+	
+	#define CASA_I_BALDE 
+	#define CASA_J_BALDE 
 
-/*---------------------------------------definicoes ROS-------------------------------------------*/
+	#define CASA_I_VACA1 
+	#define CASA_J_VACA1 
 
+	#define CASA_I_VACA2 
+	#define CASA_J_VACA2 
+
+	//////////////define na hora que a posicao eh escolhida 
+	
+	#define CASA_I_MESA_PEGAR 4
+	#define CASA_J_MESA_PEGAR 6
+
+	#define CASA_I_MESA_DEVOLVER 5
+	#define CASA_J_MESA_DEVOLVER 1
+	
+	vector<float> ladosQuadrado(2);	
+	
+	#define I 0
+	#define J 1
+
+	#define COLUNAS_MAPA 6
+	#define LINHAS_MAPA 8
+	//vector<vector<int> > mapa(LINHAS_MAPA, vector<int>(COLUNAS_MAPA));
+	
+	vector<vector<vector<int> > > mapa (LINHAS_MAPA,vector<vector<int> >(COLUNAS_MAPA,vector <int>(2,0)));	
 /*------------------------------------------------------------------------------------------------*/
 
 /*-------------------------------------definicoes locomocao---------------------------------------*/
+
+	#define VELOCIDADE_NORMAL 1.0f
+	#define VELOCIDADE_BAIXA 0.5f
+	#define CORRECAO_GIRO 9
 
 	#define GIRA 300
 	#define VEL_REF_DIR 301
 	#define VEL_REF_ESQ 302
 	#define TRAVAR 303
+
+	vector<float> posicao(3);
+	
 	#define X 0
 	#define Y 1
 	#define ANGULO 2
+	
+	
 	#define ACABOU_GIRO 1
 	#define ACABOU_ATUAL 2
 	#define DISTANCIA_MIN_AJUSTE_VACA 30.0f
-	std::vector<float> posicao(3); 
+	
+	#define ANDAR 1
+	#define GIRAR 2
 /*------------------------------------------------------------------------------------------------*/
 
 /*-----------------------------------declaracoes das funcoes--------------------------------------*/
@@ -67,6 +103,10 @@ int STATE;
 	void andaRetoDistVel(float dist, float vel);
 	void algoritmo();
 	void atualizaLocalizacao(int id, float value);
+	void inicializarVariaveis();
+	vector<int> posicaoPraMatriz(int x, int y);
+	vector<float> matrizPraPosicao(int i, int j);
+	void preencheMatriz();
 /*------------------------------------------------------------------------------------------------*/
 
 /*---------------------------------definicoes dos sensores US-------------------------------------*/
@@ -81,7 +121,7 @@ int STATE;
 	#define US8 7
 	#define US_MAX_DIST 200
 	#define NUM_IDEN_US 100
-	#define QUANTIDADE_SENSOR_US 8
+	#define QUANTIDADE_SENSOR_US 4
 	#define TAMANHO_MEDIANA 5
 	#define VALOR_MEDIANA 2
 	//sinal chega do arduino com o id(USn) = (n-1) + NUM_IDEN_US... exemplo: id do US5 = (5-1) + 100 = 104
@@ -102,7 +142,6 @@ int STATE;
 /*------------------------------------------------------------------------------------------------*/
 
 /*-----------------------------definicoes dos sensores de TOQUE-----------------------------------*/
-
 	#define TOQUE1 0
 	#define TOQUE2 1
 	#define TOQUE3 2
@@ -115,12 +154,11 @@ int STATE;
 	#define TOQUE9 8
 
 	#define NUM_IDEN_TOQUE 200
-	#define QUANTIDADE_SENSOR_TOQUE 9
+	#define QUANTIDADE_SENSOR_TOQUE 5
 
 	vector<bool> toque(QUANTIDADE_SENSOR_TOQUE);//(QUANTIDADE_SENSOR_TOQUE, false);
 /*------------------------------------------------------------------------------------------------*/
-
-#define QUANTIDADE_MOTORES_GARRA  5
+	#define QUANTIDADE_MOTORES_GARRA 5
 
 class Ocupacao{
 	public:
@@ -131,7 +169,6 @@ class Ocupacao{
 	Ocupacao(){
 		motoresGarra = vector<bool>(QUANTIDADE_MOTORES_GARRA);
 	}	
-
 };
 
 Ocupacao ocupado;
@@ -229,7 +266,7 @@ void Delay(double time)
 {
     double t1=0, t0=0;
     t0 = ros::Time::now().toSec();
-    while((t1-t0)<time){
+    while((t1-t0)<time && ros::ok()){
         t1 = ros::Time::now().toSec();
         ros::spinOnce();
     }
@@ -246,11 +283,6 @@ void initROS(ros::NodeHandle nh)
 	pubN_float32 = nh.advertise<arduino_msgs::StampedFloat32>("raspberryN_float32", 1000);
 	subN_int32 = nh.subscribe("arduinoN_int32", 1000, messageNInt32Cb);
 	subN_float32 = nh.subscribe("arduinoN_float32", 1000, messageNFloat32Cb);
-	ocupado.giro = false;
-	fill(toque.begin(), toque.end(), false);
-	fill(ocupado.motoresGarra.begin(), ocupado.motoresGarra.end(), false);
-	ocupado.andando = false;
-	fill(posicao.begin(), posicao.end(), 0.0);
 }
 
 void SendFloatMega(int id, double data)
@@ -296,7 +328,9 @@ void GiraEmGraus(float angulo)
 {
 	ocupado.giro = true;
 	SendFloatUno(GIRA, angulo - (float(CORRECAO_GIRO)));
-	while(ocupado.giro)		ros::spinOnce();
+	while(ocupado.giro && ros::ok()){		
+		ros::spinOnce();
+	}
 	atualizaLocalizacao(GIRAR, angulo);
 }
 
@@ -323,7 +357,7 @@ vector<float> AnaliseLugarDaVaca(float x1, float y1, float x2, float y2, float t
 	ponto_do_viro[Y] = centro_da_entrada[Y] - (DISTANCIA_MIN_AJUSTE_VACA*sin(DeGrausParaRadianos(90-theta)));
 	return ponto_do_viro;
 }
-
+//y1= 87 x1=10 y2=56 x2 = 31 theta= 55
 void TrajetoriaSuaveAteAVaca(float x1, float y1, float x2, float y2, float theta)
 {
 	float alfa, distancia_ate_ponto_do_giro;
@@ -331,9 +365,9 @@ void TrajetoriaSuaveAteAVaca(float x1, float y1, float x2, float y2, float theta
 	alfa = DeRadianosParaDegraus(atan2(v[X],v[Y]));
 	GiraEmGraus(alfa);
 	distancia_ate_ponto_do_giro = sqrt(pow(v[X],2) + pow(v[Y],2));
-	andaRetoDistVel(distancia_ate_ponto_do_giro);
-	GiraEmGraus(-(alfa+theta));
-	andaRetoDistVel(DISTANCIA_MIN_AJUSTE_VACA);
+	andaRetoDistVel(distancia_ate_ponto_do_giro, VELOCIDADE_NORMAL);
+	GiraEmGraus(90-(alfa+theta));
+	andaRetoDistVel(DISTANCIA_MIN_AJUSTE_VACA, VELOCIDADE_BAIXA);
 }
 
 void atualizaLocalizacao(int id, float value)
@@ -341,11 +375,69 @@ void atualizaLocalizacao(int id, float value)
 	if (id == ANDAR){
 		posicao[X] += value * cos(DeGrausParaRadianos(posicao[ANGULO]));
 		posicao[Y] += value * sin(DeGrausParaRadianos(posicao[ANGULO])); 
-	}else if (id == GIRAR)
-		posicao[ANGULO] += value;			
+	}else if (id == GIRAR)		posicao[ANGULO] += value;			
 }
 
 /*-----------------EM CENTIMETROS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!-----------------------*/
+
+vector<int> posicaoPraMatriz(int x, int y)
+{
+	vector<int> casasMat(2);
+	float aux;
+	aux = x/ladosQuadrado[X];
+	casasMat[J] = round(aux);
+	aux = y/ladosQuadrado[Y];
+	casasMat[I] = round(aux);
+	return casasMat;
+}
+
+vector<float> matrizPraPosicao(int i, int j)
+{
+	vector<float> pos(2);
+	pos[X] = ((j-1)*ladosQuadrado[X])+(ladosQuadrado[X]/2);
+	pos[Y] = ((i-1)*ladosQuadrado[Y])+(ladosQuadrado[Y]/2);
+	return pos;
+}
+
+void preencheMatriz()
+{
+	for (int i = 0; i < LINHAS_MAPA; ++i)
+	{
+		for (int j = 0; j < COLUNAS_MAPA; ++j)
+		{
+			for (int k = 0; k < 2; ++k)
+			{
+				if(k==0)	mapa[i][j][k] = 0;
+				else if ((j == 0  || j == COLUNAS_MAPA-1) && k == 1)		mapa[i][j][k] = 10;
+				else if (i == 0 || i == LINHAS_MAPA-1)	mapa[i][j][k] = 5;
+				else if (((i == COLUNAS_MAPA/2 || i == COLUNAS_MAPA/2) || (i == COLUNAS_MAPA/2+1 || i == COLUNAS_MAPA/2+1)) && k == 1)		mapa[i][j][k] = 7;
+			}
+		}
+	}/*
+	for (int k = 0; k < 2; ++k)	
+	{
+		for (int i = 0; i < LINHAS_MAPA; ++i)
+		{
+			for (int j = 0; j < COLUNAS_MAPA; ++j)	std::cout << std::setfill('0') << std::setw(2) << mapa[i][j][k] << " ";
+			cout<<endl;
+		}
+		cout<<endl;	
+	}*/
+}
+
+void inicializarVariaveis()
+{
+	ocupado.giro = false;
+	fill(toque.begin(), toque.end(), true);
+	fill(ocupado.motoresGarra.begin(), ocupado.motoresGarra.end(), false);
+	ocupado.andando = false;
+	ladosQuadrado[X] = 300/(COLUNAS_MAPA);
+	ladosQuadrado[Y] = 400/(LINHAS_MAPA);
+	vector<float> aux(2);
+	aux = matrizPraPosicao(CASA_INICIAL_I,CASA_INICIAL_J);
+	posicao[X] = aux[X];	posicao[Y] = aux[Y];
+	//preencheMatriz();
+}
 void andaRetoDistVel(float dist, float vel)
 {
 	double tempo=0;
@@ -358,28 +450,53 @@ void andaRetoDistVel(float dist, float vel)
 	atualizaLocalizacao(ANDAR, dist);
 }
 
+void printSensor(int id)
+{
+	if (id == 0)
+	{
+		cout << endl <<"us "<<endl;
+		for (int i = 0; i < QUANTIDADE_SENSOR_US; ++i)
+		{
+			cout << ultrassom[i].valor <<" ";
+		}
+	}else
+	{
+		cout << endl <<"toque "<<endl;
+		for (int i = 0; i < QUANTIDADE_SENSOR_TOQUE; ++i)
+		{
+			cout << toque[i] << " ";
+		}
+		cout << endl;
+	}
+}
 void algoritmo()
 {
 	//Delay(2);
 	//andaRetoDistVel(1,1);
-	Delay(2);
 	//andaRetoDistVel(1.1,1);
-	GiraEmGraus(180.0);
-	//andaRetoDistVel(1.1,1);
-	Delay(15);
+	//y1= 87 x1=10 y2=56 x2 = 31 theta= 55
+	//TrajetoriaSuaveAteAVaca(10,87,31,56,50);
+	//
+	//andaRetoDistVel(40.0,-1);
+	//GiraEmGraus(-90);
+	//Delay(10);
+	printSensor(0);
+	printSensor(1);
 }
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "first_test");
+	ros::init(argc, argv, "main_node");
 	ros::NodeHandle nh;
 	initROS(nh);
-
+	inicializarVariaveis();
 	ros::Rate loop_rate(10);
 	while (ros::ok())
 	{
-		Delay(3);
-		algoritmo();	
+		//Delay(5);
+		algoritmo();
+		//SendIntMega(1,1);
+		//cout<<"X= "<<posicao[X]<<"  Y= "<<posicao[Y]<< "   teste matriz: "<<mapa<<endl;	
 		ros::spinOnce();
 		loop_rate.sleep();
 	}
