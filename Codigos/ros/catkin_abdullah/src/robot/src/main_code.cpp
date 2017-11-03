@@ -27,6 +27,9 @@
 	ros::Subscriber subN_int32;
 	ros::Subscriber subN_float32;
 
+	ros::Publisher pubVis_int32;
+	ros::Subscriber subVis_float64;
+
 /*------------------------------------------------------------------------------------------------*/
 /*-----------------------------------definicoes mapeamento----------------------------------------*/
 	#define CASA_INICIAL_I 0
@@ -99,6 +102,7 @@
 	void messageMFloat64Cb( const arduino_msgs::StampedFloat64& aM_float64_msg);
 	void messageNInt32Cb( const arduino_msgs::StampedInt32& aN_int32_msg);
 	void messageNFloat32Cb( const arduino_msgs::StampedFloat32& aN_float32_msg);
+	void messageVisFloat64Cb( const arduino_msgs::StampedFloat64& vis_float64_msg);
 	void visaoGarraCB(const arduino_msgs::StampedFloat32& visaoGarra_msg);
 	void initROS();
 	void SendFloatMega(int id, double data);
@@ -197,6 +201,11 @@
 	#define DEVOLVE_COPO 30
 /*------------------------------------------------------------------------------------------------*/
 
+/*-----------------------------definicoes da VISAO-----------------------------------*/
+	#define NUM_IDEN_VISION 500
+	double cow_pos_x1, cow_pos_x2, cow_pos_z1, cow_pos_z2, cow_pos_err;
+
+/*------------------------------------------------------------------------------------------------*/
 
 
 
@@ -339,6 +348,39 @@ void Delay(double time)
 			andaComIntegracao(visaoGarra_msg.data, VELOCIDADE_COPO);
 		}
 	}
+
+	void messageVisFloat64Cb( const arduino_msgs::StampedFloat64& vis_float64_msg)
+	{
+		if(vis_float64_msg.id == NUM_IDEN_VISION + 1)
+		{
+			//cout << "Got x1: ";
+			cow_pos_x1 = vis_float64_msg.data;
+			//cout << vis_float64_msg.data;
+			//cout << "\n";
+		} else if(vis_float64_msg.id == NUM_IDEN_VISION + 2) {
+			//cout << "Got z1: ";
+			cow_pos_z1 = vis_float64_msg.data;
+			//cout << vis_float64_msg.data;
+			//cout << "\n";
+		} else if(vis_float64_msg.id == NUM_IDEN_VISION + 3) {
+			//cout << "Got x2: ";
+			cow_pos_x2 = vis_float64_msg.data;
+			//cout << vis_float64_msg.data;
+			//cout << "\n";
+		} else if(vis_float64_msg.id == NUM_IDEN_VISION + 4) {
+			//cout << "Got z2: ";
+			cow_pos_z2 = vis_float64_msg.data;
+			//cout << vis_float64_msg.data;
+			//cout << "\n";
+		} else if(vis_float64_msg.id == NUM_IDEN_VISION + 5) {
+			//cout << "Got error value: ";
+			cow_pos_err = vis_float64_msg.data;
+			//cout << vis_float64_msg.data;
+			//cout << "\n";
+		} else {
+			cout << "Got something weird\n";
+		}
+	}
 /*-------------------------------------------------------------------------------------------------*/
 /*-------------------------------------comunicacao ROS---------------------------------------------*/
 	
@@ -356,6 +398,10 @@ void Delay(double time)
 		
 		pub_visaoGarra = nh.advertise<arduino_msgs::StampedInt32>("estrategiaGarra", 1000); 
 		sub_visaoGarra = nh.subscribe("visaoGarra", 1000, visaoGarraCB);
+
+		pubVis_int32 = nh.advertise<arduino_msgs::StampedInt32>("Vision_int32", 1000); 
+		subVis_float64 = nh.subscribe("Vision_float64", 1000, messageVisFloat64Cb);
+
 	}
 
 	void SendFloatMega(int id, double data)
@@ -398,6 +444,14 @@ void Delay(double time)
 		int32_msg.id = id;
 		int32_msg.data = data;
 		pubN_int32.publish(int32_msg);
+	}
+
+	void SendIntVision(int id, long int data)
+	{
+		arduino_msgs::StampedInt32 int32_msg;
+		int32_msg.id = id;
+		int32_msg.data = data;
+		pubVis_int32.publish(int32_msg);
 	}
 
 	void SendVel(float DIR, float ESQ)
@@ -519,6 +573,67 @@ void Delay(double time)
 		andaRetoDistVel(distancia_ate_ponto_do_giro, VELOCIDADE_NORMAL);
 		GiraEmGraus(90-(alfa+theta));
 		andaRetoDistVel(DISTANCIA_MIN_AJUSTE_VACA, VELOCIDADE_BAIXA);
+	}
+
+	void ChegaNaVaca()
+	{
+		float dist;
+		float xmed_vaca = (cow_pos_x2 + cow_pos_x1)/2;
+		float zmed_vaca = (cow_pos_z2 + cow_pos_z1)/2;
+		float ang_vaca = atan2(cow_pos_z2 - cow_pos_z1, cow_pos_x2 - cow_pos_x1) - 90; // ângulo da vaca em relação ao eixo Z
+		float ang_robovaca = atan2(zmed_vaca, xmed_vaca) - 90; // ângulo do centroide da vaca em relação ao eixo Z
+		float dist_centro_vaca = sqrt(pow(xmed_vaca, 2) + pow(zmed_vaca, 2));
+		
+		//O trecho seguinte movimenta o robô de modo a se orientar de maneira frontal à vaca,
+		//na tentativa de melhorar a imagem da vaca obtida pela visão.
+		if(ang_robovaca > 0)	// se a vaca tá mais à esquerda do robô
+		{
+			if(ang_vaca < 0)		// se o lado da vaca que é bom de ordenhar tá virado pro robô
+			{
+				GiraEmGraus(ang_vaca); // gira pra ficar de lado pra a vaca
+				dist = dist_centro_vaca*cos(ang_vaca - ang_robovaca);
+				andaRetoDistVel(dist, VELOCIDADE_NORMAL);
+				GiraEmGraus(-90);
+			} else {
+				GiraEmGraus(90);
+				dist = abs(xmed_vaca) + 10;
+				andaRetoDistVel(dist, VELOCIDADE_NORMAL);
+				GiraEmGraus(-90);
+				//atualiza os valores de cow_pos
+				xmed_vaca = (cow_pos_x2 + cow_pos_x1)/2;
+				zmed_vaca = (cow_pos_z2 + cow_pos_z1)/2;
+				ang_vaca = atan2(cow_pos_z2 - cow_pos_z1, cow_pos_x2 - cow_pos_x1) - 90; // ângulo da vaca em relação ao eixo Z
+				ang_robovaca = atan2(zmed_vaca, xmed_vaca) - 90; // ângulo do centroide da vaca em relação ao eixo Z
+				dist_centro_vaca = sqrt(pow(xmed_vaca, 2) + pow(zmed_vaca, 2));
+				GiraEmGraus(ang_vaca); // gira pra ficar de lado pra a vaca
+				dist = dist_centro_vaca*cos(ang_vaca - ang_robovaca);
+				andaRetoDistVel(dist, VELOCIDADE_NORMAL);
+				GiraEmGraus(-90);
+			}
+		} else {				// se a vaca tá mais à direita do robô
+			if(ang_vaca < 0)		// se o lado da vaca que é bom de ordenhar tá virado pro robô
+			{
+				GiraEmGraus(ang_vaca); // gira pra ficar de lado pra a vaca
+				dist = dist_centro_vaca*cos(ang_vaca - ang_robovaca);
+				andaRetoDistVel(dist, VELOCIDADE_NORMAL);
+				GiraEmGraus(-90);
+			} else {
+				GiraEmGraus(-90);
+				dist = abs(xmed_vaca) + 10;
+				andaRetoDistVel(dist, VELOCIDADE_NORMAL);
+				GiraEmGraus(90);
+				//atualiza os valores de cow_pos
+				xmed_vaca = (cow_pos_x2 + cow_pos_x1)/2;
+				zmed_vaca = (cow_pos_z2 + cow_pos_z1)/2;
+				ang_vaca = atan2(cow_pos_z2 - cow_pos_z1, cow_pos_x2 - cow_pos_x1) - 90; // ângulo da vaca em relação ao eixo Z
+				ang_robovaca = atan2(zmed_vaca, xmed_vaca) - 90; // ângulo do centroide da vaca em relação ao eixo Z
+				dist_centro_vaca = sqrt(pow(xmed_vaca, 2) + pow(zmed_vaca, 2));
+				GiraEmGraus(ang_vaca); // gira pra ficar de lado pra a vaca
+				dist = dist_centro_vaca*cos(ang_vaca - ang_robovaca);
+				andaRetoDistVel(dist, VELOCIDADE_NORMAL);
+				GiraEmGraus(-90);
+			}
+		}
 	}
 
 	void atualizaLocalizacao(int id, float value)
