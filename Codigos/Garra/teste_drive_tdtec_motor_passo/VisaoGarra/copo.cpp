@@ -12,10 +12,10 @@ bool corrigePosGarra (int posicao_garra);
 
 
 int main (){
-  VideoCapture cap(0);
+  VideoCapture cap("o1.avi");
   if(!cap.isOpened())  // check if we succeeded
       return -1;
-  int a = copoFora (250, cap);
+  int a = copoFora (350, cap);//250
 
   //b = copoDentro (296)
   cap.release();
@@ -31,8 +31,8 @@ bool andaRobo(){
 
 bool identificaCopo (Mat imagem){
   Scalar area = sum (imagem);
-  namedWindow("ide", WND_PROP_OPENGL);
-  imshow("ide", imagem);
+  //namedWindow("ide", WND_PROP_OPENGL);
+  //imshow("ide", imagem);
   printf ("Area = %lf\n", area[0]);
   if (area[0] > 1.0)
       return 1;
@@ -48,7 +48,7 @@ bool copoFora (int posGarra, VideoCapture cap){
 
     //for i in range (0, 19):
       //retr = cap.grab()
-      //retr, frame = cap.retrieve(retr)
+    //retr, frame = cap.retrieve(retr)
 
     cap >> frame; // get a new frame from camera
     imshow("frame2", frame);
@@ -65,18 +65,25 @@ bool copoFora (int posGarra, VideoCapture cap){
       return 0;
     }
     imgCortada = frame (corteDir);
+    imshow("imgCortada", imgCortada);
 
     cvtColor(frame , frame, COLOR_HSV2BGR);
 
-    rectangle(frame,Point2f(corteDir.x,corteDir.y),Point2f (corteDir.x+corteDir.width,corteDir.y+corteDir.height),(0,255,0),3,8,0);
-    namedWindow("frame", WND_PROP_OPENGL);
-    imshow("frame", frame);
-    waitKey();
 
     vector<Mat> channels2;
     split(imgCortada,channels2);//Separa canais da imagem
 
-    threshold(channels2[0], binDirH, 60,1, THRESH_BINARY_INV);
+    threshold(channels2[2], binDirH, 230/*60*/,1, THRESH_BINARY);
+    rectangle(frame,Point2f(corteDir.x,corteDir.y),Point2f (corteDir.x+corteDir.width,corteDir.y+corteDir.height),(0,255,0),3,8,0);
+
+    namedWindow("0channels2[0]", WND_PROP_OPENGL);
+    imshow("0channels2[0]", channels2[0]);
+    namedWindow("1channels2[1]", WND_PROP_OPENGL);
+    imshow("1channels2[1]", channels2[1]);
+    namedWindow("2channels2[2]", WND_PROP_OPENGL);
+    imshow("2channels2[2]", channels2[2]);
+    namedWindow("frame", WND_PROP_OPENGL);
+    imshow("frame", frame);
 
     int copoNaDireita = identificaCopo (binDirH);
 
@@ -90,6 +97,7 @@ bool copoFora (int posGarra, VideoCapture cap){
     namedWindow("thresh1", WINDOW_OPENGL);
     Mat bin2 = binDirH*255;
     imshow("thresh1",bin2);
+    waitKey();
 
     if (copoNaDireita == 0)//# and copoNaEsquerda == 0:
     {
@@ -111,6 +119,7 @@ bool copoFora (int posGarra, VideoCapture cap){
       corrigePosGarra (pos_real);
     }
   }
+  waitKey();
 }
 bool copoDentro (int posGarra, VideoCapture cap){
     int posicao_garra = posGarra; // open the default camera
