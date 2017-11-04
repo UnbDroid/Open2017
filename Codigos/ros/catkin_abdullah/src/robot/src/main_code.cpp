@@ -281,6 +281,9 @@ void printaGrafo()//funcao para imprimir o grafo
 	            cout << "no: "<<GrafoMapa[i][j].NumeroDoNo<< endl <<" x postition "<<GrafoMapa[i][j].centro[X]<<"  y postition "<<GrafoMapa[i][j].centro[Y]<<endl;///numero do no = i+1, seria numerado pelas casas no vetor
 	            cout<< endl << "\tadjacents ";
 	            for(int k=0 ; k < GrafoMapa[i][j].adjacentes.size() ; k++)
+	                cout << GrafoMapa[i][j].adjacentes[k].noAdjacente->NumeroDoNo << " ";
+	            cout<< endl << "\tPesos ";
+	            for(int k=0 ; k < GrafoMapa[i][j].adjacentes.size() ; k++)
 	                cout << GrafoMapa[i][j].adjacentes[k].peso << " ";
 	            cout<< endl;
 	       	}
@@ -325,70 +328,69 @@ bool criaGrafoComPesos()
 
 void buscaMelhorCaminho(int NoAtual, int iO, int jO)
 {
-double OutrosCaminhos,Min; /// caminhos alternativos ao no atual
-int k;
+	double OutrosCaminhos,Min; /// caminhos alternativos ao no atual
+	int k;
 
-vector<NoDoMapa*> NaoVistado; //vetor de ponteiros nao visitados ainda
-NoDoMapa* u = NULL;
-NoDoMapa* v = NULL; //dois ponteiros pra nos que facilitam a escrita do codigo
+	vector<NoDoMapa*> NaoVistado; //vetor de ponteiros nao visitados ainda
+	NoDoMapa* u = NULL;
+	NoDoMapa* v = NULL; //dois ponteiros pra nos que facilitam a escrita do codigo
 
-vector<NoDoMapa*> SequenciaDeNos(COLUNAS_MAPA*LINHAS_MAPA,NULL); /// aponta nos nos conectados com um dado no, no caminho
-vector<double> Peso(COLUNAS_MAPA*LINHAS_MAPA,999999999); // guarda as distancias ate o no inicial, comecado com distancia mto grande
+	vector<NoDoMapa*> SequenciaDeNos(COLUNAS_MAPA*LINHAS_MAPA,NULL); /// aponta nos nos conectados com um dado no, no caminho
+	vector<double> Peso(COLUNAS_MAPA*LINHAS_MAPA,999999999); // guarda as distancias ate o no inicial, comecado com distancia mto grande
 
-for (int i = 0; i < LINHAS_MAPA; ++i)
-{
-	for (int j = 0; j < COLUNAS_MAPA; ++j)
+	for (int i = 0; i < LINHAS_MAPA; ++i)
 	{
-		NaoVistado.push_back(&GrafoMapa[i][j]);   
+		for (int j = 0; j < COLUNAS_MAPA; ++j)
+		{
+			NaoVistado.push_back(&GrafoMapa[i][j]);   
+		}
+
+	} /// passando os enderecos dos nos do grafo pro vetor de ponteiros n visitados ()
+
+	Peso[NoAtual] = 0;
+	    ///distancia do no pro proprio no e zero
+	while(NaoVistado.size()>0 && u != &GrafoMapa[iO][jO])
+	{
+	    v = NaoVistado[0];
+	    Min = Peso[v->NumeroDoNo];
+	    u = v;
+	    k=0;
+	    for (int i = 0; i < NaoVistado.size(); i++)
+	    {
+	        v = NaoVistado[i];
+	        if (Peso[v->NumeroDoNo]<Min)
+	        {
+	            Min = Peso[v->NumeroDoNo];
+	            u = v;
+	            k= i;
+	        }
+	    }
+	    NaoVistado.erase(NaoVistado.begin()+k);
+
+	    for (int i = 0; i < u->adjacentes.size(); ++i)
+	    {
+	        v = u->adjacentes[i].noAdjacente;
+	        OutrosCaminhos = Peso[u->NumeroDoNo] + u->adjacentes[i].peso;
+	        if (OutrosCaminhos < Peso[v->NumeroDoNo])
+	        {
+	            Peso[v->NumeroDoNo] = OutrosCaminhos;
+	            SequenciaDeNos[v->NumeroDoNo] = u;
+	        }
+
+	    }
 	}
 
-} /// passando os enderecos dos nos do grafo pro vetor de ponteiros n visitados ()
+	vector<NoDoMapa> UltimaSequencia;
+	while(SequenciaDeNos[u->NumeroDoNo] != NULL)
+	{
+	    UltimaSequencia.insert(UltimaSequencia.begin(),*u);
+	    u = SequenciaDeNos[u->NumeroDoNo]; 
+	}
 
-Peso[NoAtual] = 0;
-    ///distancia do no pro proprio no e zero
-while(NaoVistado.size()>0 && u != &GrafoMapa[iO][jO])
-{
-    v = NaoVistado[0];
-    Min = Peso[v->NumeroDoNo];
-    u = v;
-    k=0;
-    for (int i = 0; i < NaoVistado.size(); i++)
-    {
-        v = NaoVistado[i];
-        if (Peso[v->NumeroDoNo]<Min)
-        {
-            Min = Peso[v->NumeroDoNo-1];
-            u = v;
-            k= i;
-        }
-    }
-    NaoVistado.erase(NaoVistado.begin()+k);
-
-    for (int i = 0; i < u->adjacentes.size(); ++i)
-    {
-        v = u->adjacentes[i].noAdjacente;
-        OutrosCaminhos = Peso[u->NumeroDoNo] + u->adjacentes[i].peso;
-        if (OutrosCaminhos < Peso[v->NumeroDoNo])
-        {
-            Peso[v->NumeroDoNo] = OutrosCaminhos;
-            SequenciaDeNos[v->NumeroDoNo] = u;
-        }
-
-    }
+	UltimaSequencia.insert(UltimaSequencia.begin(),*u);
+	for (int i = 1; i < UltimaSequencia.size(); ++i)
+	    SequenciaDeNosParaSeguir.push_back(UltimaSequencia[i].NumeroDoNo);
 }
-
-vector<NoDoMapa> UltimaSequencia;
-while(SequenciaDeNos[u->NumeroDoNo] != NULL)
-{
-    UltimaSequencia.insert(UltimaSequencia.begin(),*u);
-    u = SequenciaDeNos[u->NumeroDoNo]; 
-}
-
-UltimaSequencia.insert(UltimaSequencia.begin(),*u);
-for (int i = 0; i < UltimaSequencia.size(); ++i)
-    SequenciaDeNosParaSeguir.push_back(UltimaSequencia[i].NumeroDoNo);
-}
-
 
 template<typename ItemType>
 unsigned Partition(ItemType* array, unsigned f, unsigned l, ItemType pivot)
@@ -896,11 +898,12 @@ void algoritmo()
 	GiraEmGraus(90);
 	SendFloatMega(100,distancia_integracao);
 	*/
-	buscaMelhorCaminho(deIJparaCasaNoVetor(3,5),1,3);
+	double t0 = ros::Time::now().toSec();
+	buscaMelhorCaminho(deIJparaCasaNoVetor(1,0),6,5);
+	double t1 = ros::Time::now().toSec();
 	for (int i = 0; i < SequenciaDeNosParaSeguir.size(); ++i)
-	{
-		cout<<SequenciaDeNosParaSeguir[i]<<endl;
-	}
+		cout<<SequenciaDeNosParaSeguir[i]<<"\t";
+	cout<<endl<<"tempo de busca= " << t1-t0<<endl;
 	Delay(30);
 }
 
