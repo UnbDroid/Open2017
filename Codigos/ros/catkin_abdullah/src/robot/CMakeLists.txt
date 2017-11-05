@@ -8,7 +8,6 @@ project(robot)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  arduino_msgs
   roscpp
   rospy
   sensor_msgs
@@ -204,9 +203,10 @@ include_directories(
 # catkin_add_nosetests(test)
 #add_definitions(-std=c++11)
 include_directories(include ${catkin_INCLUDE_DIRS})
-find_package(OpenCV REQUIRED )
+find_package(OpenCV REQUIRED)
 
 find_package(OpenCV 2.4.9.1)
+#find_package(OpenCV 3.2.0)
 
 include_directories(  ${catkin_INCLUDE_DIRS}  ${OpenCV_INCLUDE_DIRS} )
 
@@ -218,10 +218,9 @@ add_executable(cow_pos_node src/cow_pos.cpp)
 target_link_libraries(cow_pos_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 #add_dependencies(cow_pos robot_generate_messages_cpp)
 
-#add_executable(cow_pos2_node src/cow_pos2.cpp)
-#target_link_libraries(cow_pos2_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
-#add_dependencies(cow_pos2 robot_generate_messages_cpp)
+add_executable(test_node src/test.cpp)
+target_link_libraries(test_node ${catkin_LIBRARIES})
+#add_dependencies(test robot_generate_messages_cpp)
 
 find_package(catkin REQUIRED COMPONENTS roslaunch)
 roslaunch_add_file_check(launch/serial.launch USE_TEST_DEPENDENCIES)
-
