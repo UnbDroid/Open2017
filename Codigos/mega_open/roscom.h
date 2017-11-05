@@ -17,20 +17,9 @@ ros::Publisher float64_p("arduinoM_float64",&float64_msg);
 void messageInt64Cb( const arduino_msgs::StampedInt64& r_int64_msg);
 
 void messageFloat64Cb( const arduino_msgs::StampedFloat64& r_float64_msg);
-/*
-void messageInt64Cb( const arduino_msgs::StampedInt64& r_int64_msg){
-}
-
-void messageFloat32Cb( const arduino_msgs::StampedFloat32& r_float32_msg){
-}
-
-void messageFloat64Cb( const arduino_msgs::StampedFloat64& r_float64_msg){
-}*/
 
 ros::Subscriber<arduino_msgs::StampedInt64> subInt64("raspberryM_int64", &messageInt64Cb );
 ros::Subscriber<arduino_msgs::StampedFloat64> subFloat64("raspberryM_float64", &messageFloat64Cb );
-//*/
-
 
 
 void initializeROS()

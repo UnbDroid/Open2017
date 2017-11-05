@@ -5,33 +5,40 @@
 
 
 #define FRENTE_R 0
-#define FRENTE_L 0
-#define TRAS_R 0
-#define TRAS_L 0
-#define LADO_R 0
-#define LADO_L 0
-#define CIMA_R 0
-#define CIMA_L 0
+#define FRENTE_L 1
+#define TRAS_R 2
+#define TRAS_L 3
+#define LADO_R 4
+#define LADO_L 5
+#define CIMA_R 6
+#define CIMA_L 7
 
 
 #define NUM_IDEN_US 100
 
-#define TRIGGER_1 26 
-#define ECHO_1 28 
-#define TRIGGER_2 24
-#define ECHO_2 22
-#define TRIGGER_3 25
-#define ECHO_3 23
-#define TRIGGER_4 29
-#define ECHO_4 27
-#define TRIGGER_5 33
-#define ECHO_5 31
-#define TRIGGER_6 37
-#define ECHO_6 35
-#define TRIGGER_7 39
-#define ECHO_7 41
-#define TRIGGER_8 43 
-#define ECHO_8 45
+#define TRIGGER_1 51 
+#define ECHO_1 53 
+
+#define TRIGGER_2 47
+#define ECHO_2 49
+
+#define TRIGGER_3 43
+#define ECHO_3 45
+
+#define TRIGGER_4 39
+#define ECHO_4 41
+
+#define TRIGGER_5 35
+#define ECHO_5 37
+
+#define TRIGGER_6 31
+#define ECHO_6 33
+
+#define TRIGGER_7 29
+#define ECHO_7 29
+
+#define TRIGGER_8 23 
+#define ECHO_8 25
 
 #define MAX_DISTANCE 200 // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
 

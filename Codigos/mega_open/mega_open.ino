@@ -2,15 +2,29 @@
 #include "US.h"
 #include "tasks.h"
 #include "toque.h"
+#include "GarraOpen.h"
 
+#define MAMADOR 1
+#define GARRA 2
+#define SENSORES 3
+
+int STATE;
+GarraOpen Garra;
 
 void messageInt64Cb( const arduino_msgs::StampedInt64& r_int64_msg)
-{     
+{   
+  if(Garra.ehGarra(r_int64_msg.id))
+  {
+      int flag_resultado = Garra.trataGarra(r_int64_msg.id, r_int64_msg.data);
+      sendInt64(r_int64_msg.id,flag_resultado);
+  }
 }
 
 void messageFloat64Cb( const arduino_msgs::StampedFloat64& r_float64_msg)
 {
 }
+
+
 
 void taskUSCallback1()
 {
@@ -66,11 +80,26 @@ void setup()
 {
   initializeROS();
   startSENSORTOQUE();
+  //Garra.setupGarra();
   start_TASKS();
+  STATE = SENSORES;
 }
 
 void loop()
 {
-  runner.execute();
+  switch(STATE)
+  {
+      case MAMADOR:
+          break;
+      case GARRA:
+          
+          break;
+      case SENSORES:
+          runner.execute();
+          break;
+      default:
+          runner.execute();
+          break;
+  }
   nh.spinOnce();
 }

@@ -2,7 +2,7 @@
 #define SENSORDETOQUE_H
 
 
-#define QUANTIDADE_SENSOR_TOQUE 9 
+#define QUANTIDADE_SENSOR_TOQUE 5 
 #define NUM_IDEN_TOQUE 200
 #define pin1 1
 #define pin2 2
