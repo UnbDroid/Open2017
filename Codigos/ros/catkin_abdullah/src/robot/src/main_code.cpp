@@ -4,7 +4,11 @@
 	#include <fstream>
 	using namespace std;
 
+
+
+
 	#define PI 3.14159265f
+
 
 /*---------------------------------------definicoes ROS-------------------------------------------*/
 	#include "ros/ros.h"
@@ -29,8 +33,8 @@
 
 	ros::Publisher pubVis_int32;
 	ros::Subscriber subVis_float64;
-
 /*------------------------------------------------------------------------------------------------*/
+
 /*-----------------------------------declaracoes das funcoes--------------------------------------*/
 	bool ehSonar(int id);
 	bool ehToque(int id);
@@ -70,7 +74,6 @@
 	void printaGrafo();
 	bool criaGrafoComPesos();
 	void buscaMelhorCaminho(int NoAtual, int iO, int jO);
-
 /*------------------------------------------------------------------------------------------------*/
 
 /*-----------------------------------definicoes mapeamento----------------------------------------*/
@@ -123,7 +126,6 @@
 
 
 	vector<vector<NoDoMapa> > GrafoMapa(LINHAS_MAPA, vector<NoDoMapa>(COLUNAS_MAPA));
-
 /*------------------------------------------------------------------------------------------------*/
 
 /*-------------------------------------definicoes locomocao---------------------------------------*/
@@ -140,7 +142,7 @@
 	#define VEL_REF_ESQ 302
 	#define TRAVAR 303
 	#define VELOCIDADE_CRU 304
-	#define PARAMETRO_DERRAPAGEM_ROTACOES_METROS 8	
+	#define PARAMETRO_DERRAPAGEM_ROTACOES_METROS 7.8f ///era pra ser 8	
 	#define DIAMETRO_MEDIO 9.5125f
 
 	vector<float> posicao(3);
@@ -159,6 +161,7 @@
 	#define ANDAR 1
 	#define GIRAR 2
 /*------------------------------------------------------------------------------------------------*/
+
 /*---------------------------------definicoes dos sensores US-------------------------------------*/
 
 	#define US1 0
@@ -208,7 +211,8 @@
 
 	vector<bool> toque(QUANTIDADE_SENSOR_TOQUE);//(QUANTIDADE_SENSOR_TOQUE, false);
 /*------------------------------------------------------------------------------------------------*/
-/*--------------------------------------Garra-----------------------------------------------------*/
+
+/*-------------------------------------------Garra------------------------------------------------*/
 	#define QUANTIDADE_MOTORES_GARRA 5
 	
 	#define MOTOR_PASSO_X 0 
@@ -230,10 +234,9 @@
 	#define DEVOLVE_COPO 30
 /*------------------------------------------------------------------------------------------------*/
 
-/*-----------------------------definicoes da VISAO-----------------------------------*/
+/*--------------------------------------definicoes da VISAO---------------------------------------*/
 	#define NUM_IDEN_VISION 500
 	double cow_pos_x1, cow_pos_x2, cow_pos_z1, cow_pos_z2, cow_pos_err;
-
 /*------------------------------------------------------------------------------------------------*/
 
 class Ocupacao{
@@ -246,151 +249,6 @@ Ocupacao ocupado;
 vector<int> SequenciaDeNosParaSeguir;
 
 
-
-int deIJparaCasaNoVetor(int i, int j)
-{
-	return i*COLUNAS_MAPA+j;
-}
-
-vector<int> deCasaNoVetorParaIJ(int casaNoVetor)
-{
-	vector<int> casaMatrix(2);
-	casaMatrix[0] = floor(casaNoVetor/COLUNAS_MAPA);
-	casaMatrix[1] = casaNoVetor - casaMatrix[0]*COLUNAS_MAPA;
-	return casaMatrix;
-}
-
-void NoDoMapa::adicionaAdjacente(int casaNo, int peso)
-{
-	Vertice temp;
-    temp.peso = peso;
-    vector<int> casaMatrix(2);
-    casaMatrix = deCasaNoVetorParaIJ(casaNo);
-    int i = casaMatrix[0];
-    int j = casaMatrix[1];
-    temp.noAdjacente = & (GrafoMapa[i][j]);
-    adjacentes.push_back(temp);
-}
-void printaGrafo()//funcao para imprimir o grafo
-{     
-        for (int i = 0; i<LINHAS_MAPA; ++i)
-        {
-	       	for (int j = 0; j < COLUNAS_MAPA; ++j)
-	       	{
-	       		
-	            cout << "no: "<<GrafoMapa[i][j].NumeroDoNo<< endl <<" x postition "<<GrafoMapa[i][j].centro[X]<<"  y postition "<<GrafoMapa[i][j].centro[Y]<<endl;///numero do no = i+1, seria numerado pelas casas no vetor
-	            cout<< endl << "\tadjacents ";
-	            for(int k=0 ; k < GrafoMapa[i][j].adjacentes.size() ; k++)
-	                cout << GrafoMapa[i][j].adjacentes[k].noAdjacente->NumeroDoNo << " ";
-	            cout<< endl << "\tPesos ";
-	            for(int k=0 ; k < GrafoMapa[i][j].adjacentes.size() ; k++)
-	                cout << GrafoMapa[i][j].adjacentes[k].peso << " ";
-	            cout<< endl;
-	       	}
-        }
-}
-
-bool criaGrafoComPesos()
-{
-	int linhas=0,colunas=0,verts,aux_vert=0;
-	int peso;
-	ifstream GrafoTxt ("/home/abdullah/catkin_abdullah/src/robot/src/grafoMapa.txt"); // abrir arquivo (o programa tem que ser executado na mesma pasta q o arquivo que tem os dados do grafo esta).
-	GrafoTxt >> linhas;
-	GrafoTxt >> colunas;
-	if (GrafoTxt.is_open())
-	{  
-	    //cout<<"GrafoMapa file is opened !\n";
-	    for (int i = 0; (i<linhas) ; ++i)
-	    {              
-	        for(int j = 0 ; j<colunas; ++j){
-	            NoDoMapa temp;
-	            temp.centro = matrizPraPosicao(i,j); // calculo para obter as coordenadas x e y do centro do apartir das fronteiras pegas do arquivo texto
-	            temp.NumeroDoNo = deIJparaCasaNoVetor(i, j);
-	            temp.Visitado = 0;
-	            GrafoTxt >> verts;
-	            for (int k = 0; (k<verts); ++k)
-	            {
-	                GrafoTxt >> aux_vert;
-	                GrafoTxt >> peso;
-	                temp.adicionaAdjacente(aux_vert,peso);
-	            }
-	            GrafoMapa[i][j]=temp;
-	        }   
-	    }
-	    return true;       
-	}else{
-	   // cout << "************************************************************************\n"; 
-	  //  cout << "GrafoMapa file isn't opened!\nAre you sure that you are in the right directory to execute the program?\nMake sure to be in /catkin_ws/src/fcr2017/src\n";
-	  //  cout << "************************************************************************\n";
-	    return false;
-	}
-}
-
-void buscaMelhorCaminho(int NoAtual, int iO, int jO)
-{
-	double OutrosCaminhos,Min; /// caminhos alternativos ao no atual
-	int k;
-
-	vector<NoDoMapa*> NaoVistado; //vetor de ponteiros nao visitados ainda
-	NoDoMapa* u = NULL;
-	NoDoMapa* v = NULL; //dois ponteiros pra nos que facilitam a escrita do codigo
-
-	vector<NoDoMapa*> SequenciaDeNos(COLUNAS_MAPA*LINHAS_MAPA,NULL); /// aponta nos nos conectados com um dado no, no caminho
-	vector<double> Peso(COLUNAS_MAPA*LINHAS_MAPA,999999999); // guarda as distancias ate o no inicial, comecado com distancia mto grande
-
-	for (int i = 0; i < LINHAS_MAPA; ++i)
-	{
-		for (int j = 0; j < COLUNAS_MAPA; ++j)
-		{
-			NaoVistado.push_back(&GrafoMapa[i][j]);   
-		}
-
-	} /// passando os enderecos dos nos do grafo pro vetor de ponteiros n visitados ()
-
-	Peso[NoAtual] = 0;
-	    ///distancia do no pro proprio no e zero
-	while(NaoVistado.size()>0 && u != &GrafoMapa[iO][jO])
-	{
-	    v = NaoVistado[0];
-	    Min = Peso[v->NumeroDoNo];
-	    u = v;
-	    k=0;
-	    for (int i = 0; i < NaoVistado.size(); i++)
-	    {
-	        v = NaoVistado[i];
-	        if (Peso[v->NumeroDoNo]<Min)
-	        {
-	            Min = Peso[v->NumeroDoNo];
-	            u = v;
-	            k= i;
-	        }
-	    }
-	    NaoVistado.erase(NaoVistado.begin()+k);
-
-	    for (int i = 0; i < u->adjacentes.size(); ++i)
-	    {
-	        v = u->adjacentes[i].noAdjacente;
-	        OutrosCaminhos = Peso[u->NumeroDoNo] + u->adjacentes[i].peso;
-	        if (OutrosCaminhos < Peso[v->NumeroDoNo])
-	        {
-	            Peso[v->NumeroDoNo] = OutrosCaminhos;
-	            SequenciaDeNos[v->NumeroDoNo] = u;
-	        }
-
-	    }
-	}
-
-	vector<NoDoMapa> UltimaSequencia;
-	while(SequenciaDeNos[u->NumeroDoNo] != NULL)
-	{
-	    UltimaSequencia.insert(UltimaSequencia.begin(),*u);
-	    u = SequenciaDeNos[u->NumeroDoNo]; 
-	}
-
-	UltimaSequencia.insert(UltimaSequencia.begin(),*u);
-	for (int i = 1; i < UltimaSequencia.size(); ++i)
-	    SequenciaDeNosParaSeguir.push_back(UltimaSequencia[i].NumeroDoNo);
-}
 
 template<typename ItemType>
 unsigned Partition(ItemType* array, unsigned f, unsigned l, ItemType pivot)
@@ -509,7 +367,7 @@ void Delay(double time)
 
 	void messageNFloat32Cb( const arduino_msgs::StampedFloat32& aN_float32_msg)
 	{
-		if (aN_float32_msg.id == VELOCIDADE_CRU)		distancia_integracao += 100*(rotacoesPorSegundoParaLinear(aN_float32_msg.data)* 0.020004);
+		if (aN_float32_msg.id == VELOCIDADE_CRU)		distancia_integracao += 100*(rotacoesPorSegundoParaLinear(aN_float32_msg.data)* 0.02);
 		//o 100 é para mudar de metros apra centimetros (medida que a gente usa no codigo)
 	}
 
@@ -724,6 +582,166 @@ void Delay(double time)
 		return casasMat;
 	}
 
+	vector<float> matrizPraPosicao(int i, int j)
+	{
+		vector<float> pos(2);
+		pos[X] = ((j)*ladosQuadrado[X])+(ladosQuadrado[X]/2);
+		pos[Y] = ((i)*ladosQuadrado[Y])+(ladosQuadrado[Y]/2);
+		return pos;
+	}
+
+	int deIJparaCasaNoVetor(int i, int j)
+	{
+		return i*COLUNAS_MAPA+j;
+	}
+
+	vector<int> deCasaNoVetorParaIJ(int casaNoVetor)
+	{
+		vector<int> casaMatrix(2);
+		casaMatrix[0] = floor(casaNoVetor/COLUNAS_MAPA);
+		casaMatrix[1] = casaNoVetor - casaMatrix[0]*COLUNAS_MAPA;
+		return casaMatrix;
+	}
+
+	void NoDoMapa::adicionaAdjacente(int casaNo, int peso)
+	{
+		Vertice temp;
+	    temp.peso = peso;
+	    vector<int> casaMatrix(2);
+	    casaMatrix = deCasaNoVetorParaIJ(casaNo);
+	    int i = casaMatrix[0];
+	    int j = casaMatrix[1];
+	    temp.noAdjacente = & (GrafoMapa[i][j]);
+	    adjacentes.push_back(temp);
+	}
+	void printaGrafo()//funcao para imprimir o grafo
+	{     
+	        for (int i = 0; i<LINHAS_MAPA; ++i)
+	        {
+		       	for (int j = 0; j < COLUNAS_MAPA; ++j)
+		       	{
+		       		
+		            cout << "no: "<<GrafoMapa[i][j].NumeroDoNo<< endl <<" x postition "<<GrafoMapa[i][j].centro[X]<<"  y postition "<<GrafoMapa[i][j].centro[Y]<<endl;///numero do no = i+1, seria numerado pelas casas no vetor
+		            cout<< endl << "\tadjacents ";
+		            for(int k=0 ; k < GrafoMapa[i][j].adjacentes.size() ; k++)
+		                cout << GrafoMapa[i][j].adjacentes[k].noAdjacente->NumeroDoNo << " ";
+		            cout<< endl << "\tPesos ";
+		            for(int k=0 ; k < GrafoMapa[i][j].adjacentes.size() ; k++)
+		                cout << GrafoMapa[i][j].adjacentes[k].peso << " ";
+		            cout<< endl;
+		       	}
+	        }
+	}
+
+	bool criaGrafoComPesos()
+	{
+		int linhas=0,colunas=0,verts,aux_vert=0;
+		int peso;
+		#ifdef __arm__
+			ifstream GrafoTxt ( "/home/pi/catkin_ws/src/robot/src/grafoMapa.txt");
+		#else
+			ifstream GrafoTxt ( "/home/abdullah/catkin_abdullah/src/robot/src/grafoMapa.txt");
+		#endif
+
+		//ifstream GrafoTxt ( "/home/abdullah/catkin_abdullah/src/robot/src/grafoMapa.txt");
+		GrafoTxt >> linhas;
+		GrafoTxt >> colunas;
+		if (GrafoTxt.is_open())
+		{  
+		    cout<<"GrafoMapa file is opened !\n";
+		    for (int i = 0; (i<linhas) ; ++i)
+		    {              
+		        for(int j = 0 ; j<colunas; ++j){
+		            NoDoMapa temp;
+		            temp.centro = matrizPraPosicao(i,j); // calculo para obter as coordenadas x e y do centro do apartir das fronteiras pegas do arquivo texto
+		            temp.NumeroDoNo = deIJparaCasaNoVetor(i, j);
+		            temp.Visitado = 0;
+		            GrafoTxt >> verts;
+		            for (int k = 0; (k<verts); ++k)
+		            {
+		                GrafoTxt >> aux_vert;
+		                GrafoTxt >> peso;
+		                temp.adicionaAdjacente(aux_vert,peso);
+		            }
+		            GrafoMapa[i][j]=temp;
+		        }   
+		    }
+		    return true;       
+		}else{
+		   	//cout << "************************************************************************\n"; 
+		    cout << "GrafoMapa file isn't opened!\nAre you sure that you are in the right directory to execute the program?\nMake sure to be in /catkin_ws/src/robot/src\n";
+		    //cout << "************************************************************************\n";
+		    
+		    return false;
+		}
+	}
+
+	void buscaMelhorCaminho(int NoAtual, int iO, int jO)
+	{
+		double OutrosCaminhos,Min; /// caminhos alternativos ao no atual
+		int k;
+
+		vector<NoDoMapa*> NaoVistado; //vetor de ponteiros nao visitados ainda
+		NoDoMapa* u = NULL;
+		NoDoMapa* v = NULL; //dois ponteiros pra nos que facilitam a escrita do codigo
+
+		vector<NoDoMapa*> SequenciaDeNos(COLUNAS_MAPA*LINHAS_MAPA); /// aponta nos nos conectados com um dado no, no caminho
+		vector<double> Peso(COLUNAS_MAPA*LINHAS_MAPA,999999999); // guarda as distancias ate o no inicial, comecado com distancia mto grande
+
+		for (int i = 0; i < LINHAS_MAPA; ++i)
+		{
+			for (int j = 0; j < COLUNAS_MAPA; ++j)
+			{
+				NaoVistado.push_back(&GrafoMapa[i][j]);   
+			}
+
+		} /// passando os enderecos dos nos do grafo pro vetor de ponteiros n visitados ()
+
+		Peso[NoAtual] = 0;
+		    ///distancia do no pro proprio no e zero
+		while(NaoVistado.size()>0 && u != &GrafoMapa[iO][jO])
+		{
+		    v = NaoVistado[0];
+		    Min = Peso[v->NumeroDoNo];
+		    u = v;
+		    k=0;
+		    for (int i = 0; i < NaoVistado.size(); i++)
+		    {
+		        v = NaoVistado[i];
+		        if (Peso[v->NumeroDoNo]<Min)
+		        {
+		            Min = Peso[v->NumeroDoNo];
+		            u = v;
+		            k= i;
+		        }
+		    }
+		    NaoVistado.erase(NaoVistado.begin()+k);
+
+		    for (int i = 0; i < u->adjacentes.size(); ++i)
+		    {
+		        v = u->adjacentes[i].noAdjacente;
+		        OutrosCaminhos = Peso[u->NumeroDoNo] + u->adjacentes[i].peso;
+		        if (OutrosCaminhos < Peso[v->NumeroDoNo])
+		        {
+		            Peso[v->NumeroDoNo] = OutrosCaminhos;
+		            SequenciaDeNos[v->NumeroDoNo] = u;
+		        }
+
+		    }
+		}
+
+		vector<NoDoMapa> UltimaSequencia;
+		while(SequenciaDeNos[u->NumeroDoNo] != NULL)
+		{
+		    UltimaSequencia.insert(UltimaSequencia.begin(),*u);
+		    u = SequenciaDeNos[u->NumeroDoNo]; 
+		}
+
+		UltimaSequencia.insert(UltimaSequencia.begin(),*u);
+		for (int i = 1; i < UltimaSequencia.size(); ++i)
+		    SequenciaDeNosParaSeguir.push_back(UltimaSequencia[i].NumeroDoNo);
+	}
+
 	vector<float> AnaliseLugarDaVaca(float x1, float y1, float x2, float y2, float theta)
 	{
 		float  distancia_direta, centro_da_entrada[2];
@@ -818,14 +836,6 @@ void Delay(double time)
 			posicao[Y] += value * sin(DeGrausParaRadianos(posicao[ANGULO])); 
 		}else if (id == GIRAR)		posicao[ANGULO] += value;			
 	}
-
-	vector<float> matrizPraPosicao(int i, int j)
-	{
-		vector<float> pos(2);
-		pos[X] = ((j)*ladosQuadrado[X])+(ladosQuadrado[X]/2);
-		pos[Y] = ((i)*ladosQuadrado[Y])+(ladosQuadrado[Y]/2);
-		return pos;
-	}
 /*-------------------------------------------------------------------------------------------------*/
 /*void preencheMatriz()
 {
@@ -867,7 +877,7 @@ void inicializarVariaveis()
 	//preencheMatriz();
 	distancia_integracao = 0;
 	if(criaGrafoComPesos());
-	printaGrafo();
+	//printaGrafo();
 }
 
 void printSensor(int id)
@@ -893,18 +903,20 @@ void printSensor(int id)
 
 void algoritmo()
 {
-	/*Delay(3);
-	andaComIntegracao(50.0,0.5);
-	GiraEmGraus(90);
-	SendFloatMega(100,distancia_integracao);
-	*/
-	double t0 = ros::Time::now().toSec();
-	buscaMelhorCaminho(deIJparaCasaNoVetor(1,0),6,5);
+	/*double t0 = ros::Time::now().toSec();
+	buscaMelhorCaminho(deIJparaCasaNoVetor(0,2),7,4);
 	double t1 = ros::Time::now().toSec();
 	for (int i = 0; i < SequenciaDeNosParaSeguir.size(); ++i)
 		cout<<SequenciaDeNosParaSeguir[i]<<"\t";
+
 	cout<<endl<<"tempo de busca= " << t1-t0<<endl;
-	Delay(30);
+	Delay(3);*/
+	//andaComIntegracao(50.0,0.5);
+	//GiraEmGraus(90);
+	//SendFloatMega(100,distancia_integracao);
+	//Delay(30);
+	printSensor(0);
+	printSensor(1);
 }
 
 int main(int argc, char **argv)
@@ -913,7 +925,7 @@ int main(int argc, char **argv)
 	ros::NodeHandle nh;
 	initROS(nh);
 	inicializarVariaveis();
-	
+	//Delay(5);
 	ros::Rate loop_rate(10);
 	while (ros::ok())
 	{

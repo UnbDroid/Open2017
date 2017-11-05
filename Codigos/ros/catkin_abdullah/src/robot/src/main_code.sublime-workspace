@@ -1,0 +1,492 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"valo",
+				"valor"
+			],
+			[
+				"Qu",
+				"QUANTIDADE_SENSOR_US"
+			],
+			[
+				"de",
+				"DeGrausParaRadianos"
+			],
+			[
+				"cent",
+				"centro_da_entrada"
+			],
+			[
+				"po",
+				"ponto_do_viro"
+			],
+			[
+				"map",
+				"mapa"
+			],
+			[
+				"ma",
+				"matrizPraposicao"
+			],
+			[
+				"pos",
+				"posicao"
+			],
+			[
+				"float",
+				"float"
+			],
+			[
+				"CO",
+				"COLUNAS_MAPA"
+			],
+			[
+				"vE",
+				"VELOCIDADE_BAIXA"
+			],
+			[
+				"VELO",
+				"VELOCIDADE_NORMAL"
+			],
+			[
+				"Vel",
+				"Velocidade_Baixa"
+			],
+			[
+				"Velo",
+				"Velocidade_Normal"
+			],
+			[
+				"and",
+				"andaRetoDistVel"
+			],
+			[
+				"dist",
+				"distancia_ate_ponto_do_giro"
+			],
+			[
+				"And",
+				"andaRetoDistVel"
+			],
+			[
+				"At",
+				"atualizaLocalizacao"
+			],
+			[
+				"AN",
+				"ANGULO"
+			],
+			[
+				"GIRA",
+				"GIRAR"
+			],
+			[
+				"ANDAR",
+				"ANDAR"
+			],
+			[
+				"at",
+				"atualizaLocalizacao"
+			],
+			[
+				"gir",
+				"GiraEmGraus"
+			],
+			[
+				"S",
+				"SendFloatUno"
+			],
+			[
+				"m",
+				"motoresGarra"
+			],
+			[
+				"ocu",
+				"ocupado"
+			],
+			[
+				"ACA",
+				"ACABOU_GIRO"
+			],
+			[
+				"QI",
+				"QUANTIDADE_MOTORES_GARRA"
+			],
+			[
+				"g",
+				"giro"
+			],
+			[
+				"quanti",
+				"QUANTIDADE_MOTORES_GARRA"
+			],
+			[
+				"Gi",
+				"GiraEmGraus"
+			],
+			[
+				"Se",
+				"SendVel"
+			],
+			[
+				"Data",
+				"dataFloat"
+			],
+			[
+				"flo",
+				"float64_msg"
+			],
+			[
+				"IN",
+				"INT_UNO"
+			],
+			[
+				"FL",
+				"FLOAT_UNO"
+			],
+			[
+				"F",
+				"FLOAT_MEGA"
+			],
+			[
+				"va",
+				"valorf"
+			],
+			[
+				"Ve",
+				"vezes_lido"
+			],
+			[
+				"ve",
+				"vezes_lido"
+			],
+			[
+				"QUA",
+				"QUANTIDADE_SENSOR_US"
+			],
+			[
+				"us",
+				"Us"
+			],
+			[
+				"Serial",
+				"SerialException"
+			],
+			[
+				"QU",
+				"QUANTIDADE_SENSOR_TOQUE"
+			],
+			[
+				"Q",
+				"QUANTIDADE_SENSOR_US"
+			],
+			[
+				"A",
+				"A"
+			],
+			[
+				"dis",
+				"distancia_ate_ponto_do_giro"
+			],
+			[
+				"Y",
+				"Y"
+			],
+			[
+				"nh",
+				"nh"
+			],
+			[
+				"I",
+				"InitializeROS"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/home/abdullah/catkin_abdullah/src/robot/launch/serial.launch",
+		"/home/abdullah/catkin_abdullah/src/robot/src/first_test.cpp",
+		"/home/abdullah/catkin_abdullah/src/robot/CMakeLists.txt",
+		"/home/abdullah/catkin_abdullah/src/robot/src/cow_pos.cpp",
+		"/home/abdullah/fcr2017/src/obstacle_avoidance_node.cpp",
+		"/home/abdullah/fcr2017/src/obstacle_avoidance.cpp",
+		"/home/abdullah/git/Open2017/Codigos/ros/catkin_abdullah/src/robot/src/first_test.cpp",
+		"/home/abdullah/src/robot/CMakeLists.txt",
+		"/home/abdullah/catkin_abdullah/src/CMakeLists.txt",
+		"/media/abdullah/BRUNO A D/catkin_ws/src/robot/CMakeLists.txt",
+		"/home/abdullah/.octave_hist",
+		"/home/abdullah/.octave_packages",
+		"/home/abdullah/fcr2017/include/fcr2017/obstacle_avoidance.h",
+		"/etc/ssh/sshd_config",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/src/bruce_main_2/src/main.cpp",
+		"/home/abdullah/fcr2017/CMakeLists.txt",
+		"/home/abdullah/catkin_abdullah/src/robot/include/robot/rosdef.h",
+		"/home/abdullah/fcr2017/launch/pioneer3at.gazebo.launch",
+		"/home/abdullah/git/Open2017/Codigos/comandosImportantes",
+		"/home/abdullah/catkin_abdullah/src/rosserial/rosserial_python/nodes/serial_nodeN.py",
+		"/home/abdullah/catkin_abdullah/src/rosserial/rosserial_python/nodes/serial_node.py",
+		"/home/abdullah/.bashrc",
+		"/home/abdullah/catkin_abdullah/src/arduino_msgs/msg/StampedInt64.msg",
+		"/home/abdullah/catkin_abdullah/src/arduino_msgs/CMakeLists.txt",
+		"/home/abdullah/Arduino/libraries/NewPing/NewPing.cpp",
+		"/home/abdullah/Downloads/mct_main.sci",
+		"/home/abdullah/Downloads/test.sce",
+		"/home/abdullah/Arduino/libraries/Arduino-MPU6050-master/MPU6050.h",
+		"/home/abdullah/Arduino/libraries/Arduino-MPU6050-master/MPU6050.cpp",
+		"/home/abdullah/OpenArduino/uno_open/giro.h",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/src/arduino_handler/src/arduino_handler.cpp",
+		"/home/abdullah/OpenArduino/FDJANJPIPJTLNU0/giro3.h",
+		"/home/abdullah/OpenArduino/giroo/giroo.ino",
+		"/home/abdullah/git/Open2017/Codigos/uno_open/gyro.h",
+		"/home/abdullah/OpenArduino/uno_open/gyro.bak",
+		"/home/abdullah/OpenArduino/uno_open/giro3.h",
+		"/home/abdullah/OpenArduino/giroo/aa.h",
+		"/home/abdullah/OpenArduino/FDJANJPIPJTLNU0/FDJANJPIPJTLNU0.ino",
+		"/home/abdullah/OpenArduino/FDJANJPIPJTLNU0/giro4.h",
+		"/home/abdullah/OpenArduino/FDJANJPIPJTLNU0/GiroAngle3.c",
+		"/home/abdullah/OpenArduino/FDJANJPIPJTLNU0/giro2.h",
+		"/home/abdullah/OpenArduino/FDJANJPIPJTLNU0/GiroAngle2.c",
+		"/home/abdullah/Arduino/libraries/MPU6050/Examples/MPU6050_raw/GiroAngle3.c",
+		"/home/abdullah/Arduino/libraries/MPU6050/Examples/MPU6050_raw/Untitled Document",
+		"/home/abdullah/git/robomagellan/Codigos/Arduino/LerAsParadaTudoComROS_/tasksdeclarations.h",
+		"/home/abdullah/OpenArduino/mega_open/tasks.h",
+		"/home/abdullah/OpenArduino/mega_open/toque.h",
+		"/home/abdullah/catkin_abdullah/src/rosserial/rosserial_python/src/rosserial_python/SerialClient.py",
+		"/home/abdullah/catkin_abdullah/src/rosserial/rosserial_python/nodes/ModSerialNode.py",
+		"/home/abdullah/catkin_abdullah/src/robot/src/us_filter.h",
+		"/home/abdullah/catkin_abdullah/src/robot/src/ChegarNaVaca.cpp",
+		"/home/abdullah/OpenArduino/uno_open/driver.h",
+		"/home/abdullah/git/Open2017/Codigos/uno_open/driver.h",
+		"/home/abdullah/catkin_abdullah/src/robot/src/Untitled Document",
+		"/home/abdullah/OpenArduino/uno_open/gyro.h",
+		"/home/abdullah/OpenArduino/uno_open/contvel.h",
+		"/home/abdullah/git/Open2017/Codigos/ros/catkin_abdullah/src/robot/launch/serial.launch",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/src/bruce_main_2/launch/startRobotVision.launch",
+		"/home/abdullah/catkin_abdullah/src/rosserial/rosserial_python/nodes/serial_nodeM.py",
+		"/home/abdullah/git/Open2017/Codigos/uno_open/Controlador da Leticia/Controle_Velocidade/driver.h",
+		"/home/abdullah/OpenArduino/uno_open/ContVel/ContVel.ino",
+		"/home/abdullah/OpenArduino/uno_open/ContVel.h",
+		"/home/abdullah/OpenArduino/uno_open/MotorsEnc.h",
+		"/home/abdullah/git/Open2017/Codigos/uno_open/Controlador da Leticia/Controle_Velocidade/Controle_Velocidade.ino",
+		"/home/abdullah/OpenArduino/mega_open/US.h",
+		"/home/abdullah/git/robomagellan/Codigos/Arduino/LerAsParadaTudoComROS_/ultrassom.h",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/src/bruce_main_2/src/conditions/check_touch_sensor.cpp",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/src/bruce_main_2/src/parser/base_functions.cpp",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/src/bruce_main_2/src/parser/fsmparser.cpp",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/src/bruce_main_2/src/states/states.cpp",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/Como usar o ROS remotamente.txt",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/src/bruce_main_2/launch/startRobot.launch",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/src/bruce_main_2/src/actions/actions.cpp",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/src/bruce_main_2/launch/startDesespero.launch",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/src/bruce_main_2/include/states/states.h",
+		"/home/abdullah/git/Open2017/.git/info/exclude",
+		"/home/abdullah/Desktop/Dicas - coisas para fazer com o buzz e a leticia",
+		"/home/abdullah/.cache/.fr-f7rB7c/debian-binary",
+		"/home/abdullah/git/Open2017/Codigos/ros/catkin_abdullah/src/rosserial/.gitignore",
+		"/home/abdullah/git/Open2017/Codigos/ros/catkin_abdullah/src/rosserial/.travis.yml",
+		"/home/abdullah/git/Robogames-FireFighting/.git/config",
+		"/home/abdullah/fcr2017/launch/display.launch",
+		"/home/abdullah/catkin_abdullah/src/robot/launch/Untitled Document",
+		"/home/abdullah/catkin_abdullah/src/rosserial/rosserial_python/src/rosserial_python/__init__.py",
+		"/home/abdullah/arduino/roscom.h",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/devel/include/arduino_msgs/StampedBool.h",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/src/arduino_msgs/CMakeLists.txt",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/src/CMakeLists.txt",
+		"/home/abdullah/catkin_abdullah/src/robot/src/First_test.cpp",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/src/bruce_main_2/CMakeLists.txt",
+		"/home/abdullah/catkin_abdullah/src/Robot/CMakeLists.txt",
+		"/home/abdullah/catkin_abdullah/src/Arduino_Handler/CMakeLists.txt",
+		"/home/abdullah/catkin_abdullah/src/Untitled Document",
+		"/home/abdullah/arduino/arduino.cpp",
+		"/home/abdullah/arduino/roscom.cpp",
+		"/home/abdullah/git/robomagellan/Codigos/Arduino/LerAsParadaTudoComROS_/roscom.h",
+		"/home/abdullah/arduino/roscom.ino",
+		"/usr/lib/gcc/avr/4.9.2/include/stddef.h",
+		"/home/abdullah/catkin_abdullah/src/rosserial/README.md",
+		"/home/abdullah/catkin_abdullah/src/arduino_msgs/msg/StampedString.msg",
+		"/home/abdullah/arduino_msgs/msg/StampedBool.msg",
+		"/home/abdullah/git/robomagellan/Codigos/Arduino/LerAsParadaTudoComROS_/driver.h",
+		"/home/abdullah/git/robomagellan/Codigos/Arduino/LerAsParadaTudoComROS_/comArduino.h",
+		"/home/abdullah/git/robomagellan/Codigos/Arduino/LerAsParadaTudoComROS_/gps.h",
+		"/usr/share/arduino/libraries/ros_lib/geometry_msgs/Twist.h",
+		"/usr/share/arduino/libraries/ros_lib/arduino_msgs/Int64.h",
+		"/usr/share/arduino/libraries/ros_lib/arduino_msgs/ArInt64.h",
+		"/home/abdullah/Downloads/Exemplo s-function/exemplo.mdl",
+		"/usr/share/arduino/libraries/ros_lib/std_msgs/Int64.h",
+		"/opt/ros/kinetic/share/std_msgs/msg/UInt32MultiArray.msg",
+		"/opt/ros/kinetic/share/std_msgs/msg/Empty.msg",
+		"/opt/ros/kinetic/share/std_msgs/msg/Int64MultiArray.msg",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/src/arduino_msgs/package.xml",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/src/arduino_msgs/msg/StampedUint64.msg",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/src/arduino_msgs/msg/StampedFloat32.msg",
+		"/home/abdullah/git/robomagellan/Codigos/Raspberry/ROS/catkin_BUZZ/src/arduino_msgs/msg/StampedInt64.msg",
+		"/home/abdullah/git/robomagellan/Codigos/Arduino/LerAsParadaTudoComROS_/encoder.h",
+		"/home/abdullah/sketchbook/libraries/ros_lib/std_msgs/Int64.h",
+		"/usr/share/arduino/libraries/ros_lib/ros.h",
+		"/home/abdullah/git/robomagellan/Codigos/Arduino/LerAsParadaTudoComROS_/controlador.h",
+		"/home/abdullah/sketchbook/libraries/NewPing/NewPing.h",
+		"/home/abdullah/sketchbook/libraries/NewPing/keywords.txt",
+		"/home/abdullah/sketchbook/libraries/NewPing/NewPing.cpp",
+		"/home/abdullah/git/robomagellan/Codigos/Arduino/LerAsParadaTudo/roscom.h",
+		"/home/abdullah/sketchbook/libraries/readme.txt",
+		"/home/abdullah/sketchbook/libraries/ros_lib/time.cpp",
+		"/home/abdullah/sketchbook/libraries/ros_lib/ros.h",
+		"/home/abdullah/catkin_abdullah/src/Arduino_Handler/package.xml"
+	],
+	"find":
+	{
+		"height": 19.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 19.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "main_code.sublime-project",
+	"replace":
+	{
+		"height": 35.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 256.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 256.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 113.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
