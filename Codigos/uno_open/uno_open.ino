@@ -9,6 +9,7 @@ void messageInt32Cb( const arduino_msgs::StampedInt32& r_int32_msg)
 void messageFloat32Cb( const arduino_msgs::StampedFloat32& r_float32_msg)
 {
   if(r_float32_msg.id == VEL_REF_DIR){
+     distancia_media = 0;
      velocidade_ReferenciaDireita_anterior = velocidade_ReferenciaDireita;
      velocidade_ReferenciaDireita = abs(r_float32_msg.data);
      if(r_float32_msg.data>0){
@@ -39,7 +40,7 @@ void messageFloat32Cb( const arduino_msgs::StampedFloat32& r_float32_msg)
   }else if(r_float32_msg.id == GIRA){
      STATE = 0;
      graus = r_float32_msg.data;      
-  }   
+  }
 }
 
 void setup()
@@ -50,7 +51,6 @@ void setup()
   STATE = 1;
   dir = 1;
   gDir = 1;
-  sendInt32(6, dir);
 }
 
 void loop()

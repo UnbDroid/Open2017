@@ -18,7 +18,7 @@ ros::Publisher float32_p("arduinoN_float32",&float32_msg);
 
 void messageInt32Cb( const arduino_msgs::StampedInt32& r_int32_msg);
 void messageFloat32Cb( const arduino_msgs::StampedFloat32& r_float32_msg);
-
+double t0 =0 , t1=0;
 
 ros::Subscriber<arduino_msgs::StampedInt32> subInt32("raspberryN_int32", &messageInt32Cb );
 ros::Subscriber<arduino_msgs::StampedFloat32> subFloat32("raspberryN_float32", &messageFloat32Cb );
@@ -38,14 +38,16 @@ void sendInt32(long int id, long int data)
 {
    int32_msg.id = id;
    int32_msg.data = data;
-   int32_p.publish(&int32_msg);
+   int32_p.publish(&int32_msg);  
 }
 
 void sendFloat32(int id, float data)
 {
+   t0  = micros();
    float32_msg.id = id;
    float32_msg.data = data;
    float32_p.publish(&float32_msg);
+    t1= micros();
 }
 
 #endif

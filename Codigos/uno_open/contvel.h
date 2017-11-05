@@ -7,7 +7,7 @@
 #define encoder0PinA 18
 
 // Encoders direita
-#define encoder1PinA 19
+#define encoder1PinA 3
 
 
 // Calculo de velocidade
@@ -28,9 +28,11 @@
 #define VEL_REF_DIR 301
 #define VEL_REF_ESQ 302
 #define TRAVAR 303
+#define VELOCIDADE_CRU 304
 // Variáveis -----------------------------------------------------------------------------------------------
 
-
+double velocidade_media = 0;
+double distancia_media = 0;
 // Encoders
 volatile long encoder0Pos = 0; //esquerda
 volatile long encoder1Pos = 0; //direita
@@ -235,7 +237,9 @@ void UpdateVel() {
     
       velocidade_esquerda = 1000 * (voltas_esquerda - voltas_esquerda_anterior) / (tempo_aux);
       velocidade_direita = 1000 * (voltas_direita - voltas_direita_anterior) / (tempo_aux);
-   
+          
+      sendFloat32(VELOCIDADE_CRU, ((velocidade_esquerda+velocidade_direita)/2) );
+      
       voltas_esquerda_anterior = voltas_esquerda;
       voltas_direita_anterior = voltas_direita;
   }

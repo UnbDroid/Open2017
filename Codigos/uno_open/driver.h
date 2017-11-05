@@ -1,14 +1,17 @@
 #ifndef DRIVER_H
 #define DRIVER_H
 // Defines ----------------------------------------------------------------------------------------------------------
-#define IN1_E 6
-#define IN2_E 4
 
-#define IN1_D 10
-#define IN2_D 9
+#define IN1_E 25
+#define IN2_E 23
 
-#define PWM_E 5
-#define PWM_D 11
+
+#define IN1_D 27
+#define IN2_D 29
+
+#define PWM_E 4
+
+#define PWM_D 5
 
 #define POT_MAX_ESQUERDA 255
 #define POT_MAX_DIREITA 255
