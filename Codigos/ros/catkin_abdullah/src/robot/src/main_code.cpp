@@ -275,7 +275,16 @@
 
 /*--------------------------------------definicoes da VISAO---------------------------------------*/
 	#define NUM_IDEN_VISION 500
+	#define VIS_X1 1
+	#define VIS_Z1 2
+	#define VIS_X2 3
+	#define VIS_Z2 4
+	#define VIS_ERR 5
+	#define VIS_NOTFOUND 6
+
 	double cow_pos_x1, cow_pos_x2, cow_pos_z1, cow_pos_z2, cow_pos_err;
+	bool foundCow = 0;
+
 /*------------------------------------------------------------------------------------------------*/
 
 class Ocupacao{
@@ -421,32 +430,44 @@ void Delay(double time)
 
 	void messageVisFloat64Cb( const arduino_msgs::StampedFloat64& vis_float64_msg)
 	{
-		if(vis_float64_msg.id == NUM_IDEN_VISION + 1)
+		if(vis_float64_msg.id == NUM_IDEN_VISION + VIS_X1)
 		{
 			//cout << "Got x1: ";
 			cow_pos_x1 = vis_float64_msg.data;
+			foundCow = 1;
 			//cout << vis_float64_msg.data;
 			//cout << "\n";
-		} else if(vis_float64_msg.id == NUM_IDEN_VISION + 2) {
+		} else if(vis_float64_msg.id == NUM_IDEN_VISION + VIS_Z1) {
 			//cout << "Got z1: ";
 			cow_pos_z1 = vis_float64_msg.data;
+			foundCow = 1;
 			//cout << vis_float64_msg.data;
 			//cout << "\n";
-		} else if(vis_float64_msg.id == NUM_IDEN_VISION + 3) {
+		} else if(vis_float64_msg.id == NUM_IDEN_VISION + VIS_X2) {
 			//cout << "Got x2: ";
 			cow_pos_x2 = vis_float64_msg.data;
+			foundCow = 1;
 			//cout << vis_float64_msg.data;
 			//cout << "\n";
-		} else if(vis_float64_msg.id == NUM_IDEN_VISION + 4) {
+		} else if(vis_float64_msg.id == NUM_IDEN_VISION + VIS_Z2) {
 			//cout << "Got z2: ";
 			cow_pos_z2 = vis_float64_msg.data;
+			foundCow = 1;
 			//cout << vis_float64_msg.data;
 			//cout << "\n";
-		} else if(vis_float64_msg.id == NUM_IDEN_VISION + 5) {
+		} else if(vis_float64_msg.id == NUM_IDEN_VISION + VIS_ERR) {
 			//cout << "Got error value: ";
 			cow_pos_err = vis_float64_msg.data;
+			foundCow = 1;
 			//cout << vis_float64_msg.data;
 			//cout << "\n";
+		} else if(vis_float64_msg.id == NUM_IDEN_VISION + VIS_NOTFOUND) {
+			cow_pos_x1 = 0;
+			cow_pos_z1 = 0;
+			cow_pos_x2 = 0;
+			cow_pos_z2 = 0;
+			cow_pos_err = 999;
+			foundCow = 0;
 		}
 	}
 /*-------------------------------------------------------------------------------------------------*/
