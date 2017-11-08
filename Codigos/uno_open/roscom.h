@@ -8,7 +8,7 @@
 #include <arduino_msgs/StampedFloat32.h>
 
 
-ros::NodeHandle  nh;
+ros::NodeHandle nh;
 
 arduino_msgs::StampedInt32 int32_msg;
 arduino_msgs::StampedFloat32 float32_msg;
