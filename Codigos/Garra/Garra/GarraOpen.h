@@ -5,17 +5,17 @@
 #include "Servo.h"
 
 
-#define PULSO_CIMA 10
-#define PULSO_BAIXO 165
+#define PULSO_CIMA 12
+#define PULSO_BAIXO 167
 
-#define ATUADOR_ABRE 80
-#define ATUADOR_FECHA 2
+#define ATUADOR_ABRE 75
+#define ATUADOR_FECHA 10
 
-#define COTOVELO_FRENTE 10
-#define COTOVELO_TRAS 168
+#define COTOVELO_FRENTE 170
+#define COTOVELO_TRAS 5
 
-#define PRECISAOX 0.0225 //0.18
-#define PRECISAOY 0.0243 //0.195
+#define PRECISAOX 0.022571429 //0.18
+#define PRECISAOY 0.02485714 //0.195
 #define ORIGEMY 0
 #define ORIGEMX 0
 #define FREQUENCIA 1000.0
@@ -29,9 +29,9 @@ class GarraOpen
 
     void zeraGarra();
 
-    void movePulso(bool pos);
-    void moveAtuador(bool pos);
-    void moveCotovelo(bool pos);
+    void movePulso(int pos);
+    void moveAtuador(int pos);
+    void moveCotovelo(int pos);
 
     void passoX();
     void passoY();
@@ -39,11 +39,13 @@ class GarraOpen
     void moveY (int pos);
 
     void seVira (int posx, int posy, bool serCotovelo, bool serPulso, bool serAtuador);
+    void segueTrajetoria (bool dir);
+  
   private:
     Servo cotovelo, pulso, atuador;
     int posX, stpX, dirX, rstX, slpX, enaX, m0X, m1X, m2X, passoAtualX, fimCursoX, inicioCursoX;
     int posY, stpY, dirY, rstY, slpY, enaY, m0Y, m1Y, m2Y, passoAtualY, fimCursoY, inicioCursoY;
-    bool posPulso, posAtuador, posCotovelo;
+    int posPulso, posAtuador, posCotovelo;
 };
 
 #endif
