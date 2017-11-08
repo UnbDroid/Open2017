@@ -55,7 +55,7 @@
 	float DeRadianosParaDegraus(float angulo);
 	vector<float> AnaliseLugarDaVaca(float x1, float y1, float x2, float y2, float theta);
 	void TrajetoriaSuaveAteAVaca(float x1, float y1, float x2, float y2, float theta);
-	void andaRetoDistVel(float dist, float vel);
+	void andaRetoDistVelTempo(float dist, float vel);
 	void algoritmo();
 	void atualizaLocalizacao(int id, float value);
 	void inicializarVariaveis();
@@ -65,7 +65,7 @@
 	double rotacoesPorSegundoParaLinear(float dado);
 	bool ehGarra(int id);
 	void SendIntVisaoGarra(int id, long int data);
-	void andaComIntegracao(float distancia, float vel);
+	void andaRetoDistVelIntegrando(float distancia, float vel);
 	void buscaMelhorCaminho(int NoAtual, int iO, int jO);
 	class NoDoMapa;
 	class Vertice;
@@ -77,6 +77,9 @@
 	bool EhNoEixoX(int no1, int no2);
 	int AnguloQuePrecisaPraGirar(int noObjetivo);
 	bool ehPraPassarNaPorta();
+	void rotinaPassarNaPorta();
+	void andaDevagarChecandoPortaAteAcabarOVao(bool praFrente,int sensorParaChecar, bool comecandoNaParede);
+	int checaAnguloComTolerancia();
 /*------------------------------------------------------------------------------------------------*/
 
 /*-----------------------------------definicoes mapeamento----------------------------------------*/
@@ -170,7 +173,7 @@
 
 	vector<float> posicao(3);
 
-	double distancia_integracao;
+	double velocidadeIntegrada;
 	vector<int> SequenciaDeNosParaSeguir;
 	int noAtual = 42;
 
@@ -401,7 +404,7 @@ void Delay(double time)
 
 	void messageNFloat32Cb( const arduino_msgs::StampedFloat32& aN_float32_msg)
 	{
-		if (aN_float32_msg.id == VELOCIDADE_CRU)		distancia_integracao += 100*(rotacoesPorSegundoParaLinear(aN_float32_msg.data)* 0.02);
+		if (aN_float32_msg.id == VELOCIDADE_CRU)		velocidadeIntegrada += 100*(rotacoesPorSegundoParaLinear(aN_float32_msg.data)* 0.02);
 		//o 100 é para mudar de metros apra centimetros (medida que a gente usa no codigo)
 	}
 
@@ -412,7 +415,7 @@ void Delay(double time)
 			SendIntMega(visaoGarra_msg.id, visaoGarra_msg.data);
 		}
 		else if(visaoGarra_msg.id == ANDA_PRA_FRENTE_GARRA){
-			andaComIntegracao(visaoGarra_msg.data, VELOCIDADE_COPO);
+			andaRetoDistVelIntegrando(visaoGarra_msg.data, VELOCIDADE_COPO);
 		}
 	}
 
@@ -565,7 +568,7 @@ void Delay(double time)
 		atualizaLocalizacao(GIRAR, angulo);
 	}
 
-	void andaRetoDistVel(float dist, float vel)
+	void andaRetoDistVelTempo(float dist, float vel)
 	{
 		double tempo=0;
 		tempo = dist*2.682871209/100*abs(vel); /// de rotacoes por segundo para metros por segundo
@@ -578,14 +581,14 @@ void Delay(double time)
 		atualizaLocalizacao(ANDAR, dist);
 	}
 
-	void andaComIntegracao(float distancia, float vel)
+	void andaRetoDistVelIntegrando(float distancia, float vel)
 	{
-		distancia_integracao = 0.0;
+		velocidadeIntegrada = 0.0;
 		SendVel(vel,vel);
 		//SendVel(vel,vel);
 		//SendVel(vel,vel);
 		//cout<<"andei dist = "<< distancia << endl;
-		while(distancia_integracao < distancia && ros::ok())
+		while(velocidadeIntegrada < distancia && ros::ok())
 		{
 			ros::spinOnce();		
 		}
@@ -676,15 +679,15 @@ void Delay(double time)
 			if(praFrente)
 			{		
 				while(ultrassom[sensorParaChecar].valor > VALOR_VAO){
-					andaComIntegracao(PASSINHO, VELOCIDADE_BAIXA);
+					andaRetoDistVelIntegrando(PASSINHO, VELOCIDADE_BAIXA);
 				}
-				andaComIntegracao(AJUSTE_POS_ACHAR_PORTA,-VELOCIDADE_BAIXA);
+				andaRetoDistVelIntegrando(AJUSTE_POS_ACHAR_PORTA,-VELOCIDADE_BAIXA);
 			}else
 			{
 				while(ultrassom[sensorParaChecar].valor > VALOR_VAO){
-					andaComIntegracao(PASSINHO, -VELOCIDADE_BAIXA);
+					andaRetoDistVelIntegrando(PASSINHO, -VELOCIDADE_BAIXA);
 				}
-				andaComIntegracao(AJUSTE_POS_ACHAR_PORTA,VELOCIDADE_BAIXA);
+				andaRetoDistVelIntegrando(AJUSTE_POS_ACHAR_PORTA,VELOCIDADE_BAIXA);
 			}
 		}else
 		{		
@@ -692,15 +695,15 @@ void Delay(double time)
 			{		
 				while(ultrassom[sensorParaChecar].valor < VALOR_VAO)
 				{
-					andaComIntegracao(PASSINHO, VELOCIDADE_BAIXA);
+					andaRetoDistVelIntegrando(PASSINHO, VELOCIDADE_BAIXA);
 				}
-				andaComIntegracao(AJUSTE_POS_ACHAR_PORTA,-VELOCIDADE_BAIXA);				
+				andaRetoDistVelIntegrando(AJUSTE_POS_ACHAR_PORTA,-VELOCIDADE_BAIXA);				
 			}else
 			{
 				while(ultrassom[sensorParaChecar].valor < VALOR_VAO){
-					andaComIntegracao(PASSINHO, -VELOCIDADE_BAIXA);
+					andaRetoDistVelIntegrando(PASSINHO, -VELOCIDADE_BAIXA);
 				}
-				andaComIntegracao(AJUSTE_POS_ACHAR_PORTA,VELOCIDADE_BAIXA);
+				andaRetoDistVelIntegrando(AJUSTE_POS_ACHAR_PORTA,VELOCIDADE_BAIXA);
 			}
 		}		
 	}
@@ -818,7 +821,7 @@ void Delay(double time)
 				{
 					GiraEmGraus(angulo);
 				}
-				andaComIntegracao(PASSO_LOCOMOCAO,VELOCIDADE_NORMAL);
+				andaRetoDistVelIntegrando(PASSO_LOCOMOCAO,VELOCIDADE_NORMAL);
 				/*
 				int j=0;
 				while(j++<3)
@@ -1027,9 +1030,9 @@ void Delay(double time)
 		alfa = DeRadianosParaDegraus(atan2(v[X],v[Y]));
 		GiraEmGraus(alfa);
 		distancia_ate_ponto_do_giro = sqrt(pow(v[X],2) + pow(v[Y],2));
-		andaRetoDistVel(distancia_ate_ponto_do_giro, VELOCIDADE_NORMAL);
+		andaRetoDistVelTempo(distancia_ate_ponto_do_giro, VELOCIDADE_NORMAL);
 		GiraEmGraus(90-(alfa+theta));
-		andaRetoDistVel(DISTANCIA_MIN_AJUSTE_VACA, VELOCIDADE_BAIXA);
+		andaRetoDistVelTempo(DISTANCIA_MIN_AJUSTE_VACA, VELOCIDADE_BAIXA);
 	}
 
 	void ChegaNaVaca()
@@ -1049,12 +1052,12 @@ void Delay(double time)
 			{
 				GiraEmGraus(ang_vaca); // gira pra ficar de lado pra a vaca
 				dist = dist_centro_vaca*cos(ang_vaca - ang_robovaca);
-				andaRetoDistVel(dist, VELOCIDADE_NORMAL);
+				andaRetoDistVelIntegrando(dist, VELOCIDADE_NORMAL);
 				GiraEmGraus(-90);
 			} else {
 				GiraEmGraus(90);
 				dist = abs(xmed_vaca) + 10;
-				andaRetoDistVel(dist, VELOCIDADE_NORMAL);
+				andaRetoDistVelIntegrando(dist, VELOCIDADE_NORMAL);
 				GiraEmGraus(-90);
 				//atualiza os valores de cow_pos
 				xmed_vaca = (cow_pos_x2 + cow_pos_x1)/2;
@@ -1064,7 +1067,7 @@ void Delay(double time)
 				dist_centro_vaca = sqrt(pow(xmed_vaca, 2) + pow(zmed_vaca, 2));
 				GiraEmGraus(ang_vaca); // gira pra ficar de lado pra a vaca
 				dist = dist_centro_vaca*cos(ang_vaca - ang_robovaca);
-				andaRetoDistVel(dist, VELOCIDADE_NORMAL);
+				andaRetoDistVelIntegrando(dist, VELOCIDADE_NORMAL);
 				GiraEmGraus(-90);
 			}
 		} else {				// se a vaca tá mais à direita do robô
@@ -1072,12 +1075,12 @@ void Delay(double time)
 			{
 				GiraEmGraus(ang_vaca); // gira pra ficar de lado pra a vaca
 				dist = dist_centro_vaca*cos(ang_vaca - ang_robovaca);
-				andaRetoDistVel(dist, VELOCIDADE_NORMAL);
+				andaRetoDistVelIntegrando(dist, VELOCIDADE_NORMAL);
 				GiraEmGraus(-90);
 			} else {
 				GiraEmGraus(-90);
 				dist = abs(xmed_vaca) + 10;
-				andaRetoDistVel(dist, VELOCIDADE_NORMAL);
+				andaRetoDistVelIntegrando(dist, VELOCIDADE_NORMAL);
 				GiraEmGraus(90);
 				//atualiza os valores de cow_pos
 				xmed_vaca = (cow_pos_x2 + cow_pos_x1)/2;
@@ -1087,7 +1090,7 @@ void Delay(double time)
 				dist_centro_vaca = sqrt(pow(xmed_vaca, 2) + pow(zmed_vaca, 2));
 				GiraEmGraus(ang_vaca); // gira pra ficar de lado pra a vaca
 				dist = dist_centro_vaca*cos(ang_vaca - ang_robovaca);
-				andaRetoDistVel(dist, VELOCIDADE_NORMAL);
+				andaRetoDistVelIntegrando(dist, VELOCIDADE_NORMAL);
 				GiraEmGraus(-90);
 			}
 		}
@@ -1106,7 +1109,7 @@ void inicializarVariaveis()
 	posicao[X] = aux[X];	posicao[Y] = aux[Y];
 	posicao[ANGULO] = 0.0;
 	//preencheMatriz();
-	distancia_integracao = 0;
+	velocidadeIntegrada = 0;
 	if(criaGrafoComPesos());
 	//printaGrafo();
 }
@@ -1153,6 +1156,5 @@ int main(int argc, char **argv)
 		ros::spinOnce();
 		loop_rate.sleep();
 	}
-
 	return 0;
 }

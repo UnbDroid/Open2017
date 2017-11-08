@@ -43,11 +43,9 @@ void sendInt32(long int id, long int data)
 
 void sendFloat32(int id, float data)
 {
-   t0  = micros();
    float32_msg.id = id;
    float32_msg.data = data;
    float32_p.publish(&float32_msg);
-    t1= micros();
 }
 
 #endif

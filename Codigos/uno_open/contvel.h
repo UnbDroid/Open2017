@@ -237,9 +237,7 @@ void UpdateVel() {
     
       velocidade_esquerda = 1000 * (voltas_esquerda - voltas_esquerda_anterior) / (tempo_aux);
       velocidade_direita = 1000 * (voltas_direita - voltas_direita_anterior) / (tempo_aux);
-          
-      sendFloat32(VELOCIDADE_CRU, ((velocidade_esquerda+velocidade_direita)/2) );
-      
+      sendFloat32(VELOCIDADE_CRU,(velocidade_esquerda+velocidade_direita)/2);  
       voltas_esquerda_anterior = voltas_esquerda;
       voltas_direita_anterior = voltas_direita;
   }

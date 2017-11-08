@@ -3,9 +3,9 @@
 
 #define GIRA 300
 
-#define VEL_GIRO_DIR 150.0f
+#define VEL_GIRO_DIR 172.5f
 #define VEL_GIRO_ESQ 172.5f
-
+#define DEBUG_INICIO_GIRO 9999
 #define ACABOU_GIRO 1
 #define ANGULO_ATUAL 2 
 
@@ -23,15 +23,22 @@ float pitch = 0;
 float roll = 0;
 float yaw = 0;
 
-void inicializaGiro() 
+ void inicializaGiro() 
 {
-  while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G))
-  {
-    delay(500);
-  }
-  mpu.calibrateGyro();
-  mpu.setThreshold(3);
-  InicioDoGiro = 1;
+    long int t1,t0 = millis();
+    while((!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G)))// && (t1 - t0) < 3000 )
+    {
+     // t1 = millis();
+      
+      delay(500);
+    }
+    //if(t1 - t0 < 4300){
+      mpu.calibrateGyro();
+      mpu.setThreshold(3);
+      InicioDoGiro = 1;
+     // return 0;
+    //}else
+     // return 1;
 }
 
 void atualizaGiro()
