@@ -18,6 +18,12 @@
 #define X_ERROR_CONST -0.6332	//Mathematically: error = z1*X_ERROR_MI + X_ERROR_CONSTANT
 
 #define NUM_IDEN_VISION 500
+#define VIS_X1 1
+#define VIS_Z1 2
+#define VIS_X2 3
+#define VIS_Z2 4
+#define VIS_ERR 5
+#define VIS_NOTFOUND 6
 
 using namespace cv;
 using namespace std;
@@ -26,7 +32,8 @@ Mat src, original, matblur, gradient, matretangulos, matprocessado, matxisdavaca
 vector<float> vecz1, vecx1, vecang1, vecz2, vecx2, vecang2, vecdist;
 Point2f pt1linha1(0.0,0.0), pt2linha1(0.0,0.0),pt1linha2(0.0,0.0), pt2linha2(0.0,0.0);
 double z1, x1, ang1, z2, x2, ang2, dist, err;
-float max_error = 0.2;
+bool foundCow = 0;
+float max_error = 0.1;
 
 ros::Publisher pubVis_float64;
 ros::Subscriber subVis_int32;
@@ -76,40 +83,48 @@ void rosInit(ros::NodeHandle nh)
 
 void sendPosVaca()
 {
-  vis_float64_msg.id = NUM_IDEN_VISION + 1;
+  vis_float64_msg.id = NUM_IDEN_VISION + VIS_X1;
   vis_float64_msg.data = x1;
   pubVis_float64.publish(vis_float64_msg);
   cout << "Sent x1: ";
   cout << x1;
   cout << "\n";
 
-  vis_float64_msg.id = NUM_IDEN_VISION + 2;
+  vis_float64_msg.id = NUM_IDEN_VISION + VIS_Z1;
   vis_float64_msg.data = z1;
   pubVis_float64.publish(vis_float64_msg);
   cout << "Sent z1: ";
   cout << z1;
   cout << "\n";
 
-  vis_float64_msg.id = NUM_IDEN_VISION + 3;
+  vis_float64_msg.id = NUM_IDEN_VISION + VIS_X2;
   vis_float64_msg.data = x2;
   pubVis_float64.publish(vis_float64_msg);
   cout << "Sent x2: ";
   cout << x2;
   cout << "\n";
 
-  vis_float64_msg.id = NUM_IDEN_VISION + 4;
+  vis_float64_msg.id = NUM_IDEN_VISION + VIS_Z2;
   vis_float64_msg.data = z2;
   pubVis_float64.publish(vis_float64_msg);
   cout << "Sent z2: ";
   cout << z2;
   cout << "\n";
 
-  vis_float64_msg.id = NUM_IDEN_VISION + 5;
+  vis_float64_msg.id = NUM_IDEN_VISION + VIS_ERR;
   vis_float64_msg.data = err;
   pubVis_float64.publish(vis_float64_msg);
   cout << "Sent error value: ";
   cout << err;
   cout << "\n\n";
+}
+
+void sendCowNotFound()
+{
+  vis_float64_msg.id = NUM_IDEN_VISION + VIS_NOTFOUND;
+  //vis_float64_msg.data = z2;
+  pubVis_float64.publish(vis_float64_msg);
+  cout << "Cow not found\n";
 }
 
 int findCow(){
@@ -173,7 +188,7 @@ int findCow(){
   //cout << "OK Image is equalized\n";
 
   
-
+  /*
   namedWindow( "Trackbar", CV_WINDOW_NORMAL );
   createTrackbar( "Blur (opcional):",     "Trackbar", &kblur,               20,  CowRect );
   createTrackbar( "Closing: ",            "Trackbar", &ero1,                20,  CowRect );
@@ -181,7 +196,7 @@ int findCow(){
   createTrackbar( "Razao largura/100: ",  "Trackbar", &razaoRetangulosVaca, 300, CowRect );
   createTrackbar( "Razao altura/100: ",   "Trackbar", &razaoRetangulosVaca2,300, CowRect );
   createTrackbar( "poligono: ",           "Trackbar", &poli,                50,  CowRect );
-  
+  */
   
 
   //cout << "Calling CowRect function\n";
@@ -397,7 +412,7 @@ void CowRect(int, void*)
 
   //Desenha
   Point2f pt2;
-  if(max>3){
+  if(max>4){
     Scalar color = Scalar (rng.uniform(0,255),rng.uniform(0,255),rng.uniform(0,255));
 
     m = (vse[marcador].y-vsd[marcador].y)/(vse[marcador].x-vsd[marcador].x);//Calcula coeficiente angular do retangulo K
@@ -564,7 +579,10 @@ void CowRect(int, void*)
 
     position(pt2linha1.y-pt1linha1.y, pt2linha2.y-pt1linha2.y, pt1linha1.x,pt1linha2.x);
     matfinal = tempBlackWhite.clone();
+    foundCow = 1;
     imshow("Desenho", matfinal);
+  } else {
+    foundCow = 0;
   }
   
   //cout << "Error = ";
@@ -597,7 +615,7 @@ void position (float line1size, float line2size, float px1, float px2){
   x2 = (z2*(px2-xcenter)/FOCAL_DIST)-X2_CENTER_ERROR;
   dist = pow(pow(z1-z2, 2) + pow(x1-x2, 2) , 0.5)+3.0;
   
-  err = abs(dist-36.0)/36.0;
+  err = abs(dist-40.0)/40.0;
 }
 
 void savePoints (){
@@ -644,22 +662,42 @@ int main(int argc, char **argv)
     imshow("Entrada", src);
     if(newValPosVaca == 1) // se tem uma nova leitura da posição da vaca
     {
-	err = 1;
-	int cont = 0;
-	while(err > 0.2){
-	    cam >> src;
-    	    imshow("Entrada", src);
-	    findCow();
-	    cont += 1;
-	    cout << cont;
-	    cout << "\n";
-	    cout << err;
-	    cout << "\n";
-	    waitKey(1);
-	}
-	sendPosVaca();
-      	cout << "Sent cow_pos values\n";
-	newValPosVaca = 0;
+    	err = 1;
+    	int cont = 0;
+      float min_err = 9999, min_err_x1 = 9999, min_err_z1 = 9999, min_err_x2 = 9999, min_err_z2 = 9999;
+      while(err > max_error && cont < 10){
+    	    cam >> src;
+        	imshow("Entrada", src);
+    	    findCow();
+    	    if(err < min_err) {
+            min_err = err;
+            min_err_x1 = x1;
+            min_err_z1 = z1;
+            min_err_x2 = x2;
+            min_err_z2 = z2;
+          }
+          cont += 1;
+    	    cout << err;
+    	    cout << "\n";
+    	    waitKey(1);
+    	}
+      if(cont == 10)
+      {
+        err = min_err;
+        x1 = min_err_x1;
+        z1 = min_err_z1;
+        x2 = min_err_x2;
+        z2 = min_err_z2;
+      }
+      if(foundCow)
+      {
+        sendPosVaca();
+      } else {
+        sendCowNotFound();
+      }
+      
+      //cout << "Sent cow_pos values\n";
+	    newValPosVaca = 0;
     }
     waitKey(1);
     ros::spinOnce();
