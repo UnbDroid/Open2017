@@ -74,10 +74,13 @@
 	void printaGrafo();
 	bool criaGrafoComPesos();
 	void buscaMelhorCaminho(int NoAtual, int iO, int jO);
+	bool EhNoEixoX(int no1, int no2);
+	int AnguloQuePrecisaPraGirar(int noObjetivo);
+	bool ehPraPassarNaPorta();
 /*------------------------------------------------------------------------------------------------*/
 
 /*-----------------------------------definicoes mapeamento----------------------------------------*/
-	#define CASA_INICIAL_I 0
+	#define CASA_INICIAL_I 4
 	#define CASA_INICIAL_J 0
 	
 	#define CASA_I_BALDE  
@@ -92,11 +95,14 @@
 	//////////////define na hora que a posicao eh escolhida 
 	
 	#define CASA_I_MESA_PEGAR 4
-	#define CASA_J_MESA_PEGAR 6
+	#define CASA_J_MESA_PEGAR 5
 
 	#define CASA_I_MESA_DEVOLVER 5
 	#define CASA_J_MESA_DEVOLVER 1
 	
+	#define LADO_Y_I_DA_ARENA 400
+	#define LADO_X_J_DA_ARENA 300
+
 	vector<float> ladosQuadrado(2);	
 	
 	#define I 0
@@ -104,6 +110,7 @@
 
 	#define COLUNAS_MAPA 6
 	#define LINHAS_MAPA 8
+
 	//vector<vector<int> > mapa(LINHAS_MAPA, vector<int>(COLUNAS_MAPA));
 	class Vertice{
 		public:	
@@ -131,24 +138,42 @@
 /*-------------------------------------definicoes locomocao---------------------------------------*/
 
 	#define VELOCIDADE_MAXIMA 1.3f
-	#define VELOCIDADE_NORMAL 1.0f
+	#define VELOCIDADE_ALTA	1.0f
+	#define VELOCIDADE_NORMAL 0.75f
 	#define VELOCIDADE_BAIXA 0.5f
 	#define VELOCIDADE_BAIXISSIMA 0.2f
 	
-	#define CORRECAO_GIRO 9
+	#define USDIREITA 1
+	#define USESQUERDA 0
+
+	#define CORRECAO_GIRO 6
 
 	#define GIRA 300
 	#define VEL_REF_DIR 301
 	#define VEL_REF_ESQ 302
 	#define TRAVAR 303
 	#define VELOCIDADE_CRU 304
-	#define PARAMETRO_DERRAPAGEM_ROTACOES_METROS 7.8f ///era pra ser 8	
+
+	#define PARAMETRO_DERRAPAGEM_ROTACOES_METROS 8.625f ///era pra ser 8	
 	#define DIAMETRO_MEDIO 9.5125f
+
+
+	#define EIXO_XPOSITIVO 0
+	#define EIXO_XNEGATIVO 1 
+	#define EIXO_YPOSITIVO 2
+	#define EIXO_YNEGATIVO 3
+
+	#define TOLERANCIA_ANGULO 15
+	#define PERDIDO_BRODER -1
+
+	#define AJUSTE_POS_ACHAR_PORTA 5.0
 
 	vector<float> posicao(3);
 
 	double distancia_integracao;
-	
+	vector<int> SequenciaDeNosParaSeguir;
+	int noAtual = 42;
+
 	#define X 0
 	#define Y 1
 	#define ANGULO 2
@@ -158,23 +183,34 @@
 	#define ACABOU_ATUAL 2
 	#define DISTANCIA_MIN_AJUSTE_VACA 30.0f
 	
+	#define PASSO_LOCOMOCAO 50
+	#define PASSINHO 2
+
 	#define ANDAR 1
 	#define GIRAR 2
 /*------------------------------------------------------------------------------------------------*/
 
 /*---------------------------------definicoes dos sensores US-------------------------------------*/
 
-	#define US1 0
-	#define US2 1
-	#define US3 2
-	#define US4 3
-	#define US5 4
-	#define US6 5
-	#define US7 6
-	#define US8 7
+
+	#define FRENTE_R 0
+	#define FRENTE_L 1
+	#define TRAS_R 2
+	#define TRAS_L 3
+
+	#define LADO_R 4
+	#define LADO_L 5
+	#define CIMA_R 6
+	#define CIMA_L 7
+
+	#define VALOR_VAO 20
+
 	#define US_MAX_DIST 200
+
 	#define NUM_IDEN_US 100
+
 	#define QUANTIDADE_SENSOR_US 8
+	
 	#define TAMANHO_MEDIANA 5
 	#define VALOR_MEDIANA 2
 	//sinal chega do arduino com o id(USn) = (n-1) + NUM_IDEN_US... exemplo: id do US5 = (5-1) + 100 = 104
@@ -246,8 +282,6 @@ class Ocupacao{
 };
 
 Ocupacao ocupado;
-vector<int> SequenciaDeNosParaSeguir;
-
 
 
 template<typename ItemType>
@@ -410,8 +444,6 @@ void Delay(double time)
 			cow_pos_err = vis_float64_msg.data;
 			//cout << vis_float64_msg.data;
 			//cout << "\n";
-		} else {
-			cout << "Got something weird\n";
 		}
 	}
 /*-------------------------------------------------------------------------------------------------*/
@@ -510,10 +542,23 @@ void Delay(double time)
 	}
 /*-------------------------------------------------------------------------------------------------*/
 /*----------------------------------------andar&Girar----------------------------------------------*/
+	void atualizaLocalizacao(int id, float value)
+	{
+		if (id == ANDAR){
+			posicao[X] += value * cos(DeGrausParaRadianos(posicao[ANGULO]));
+			posicao[Y] += value * -sin(DeGrausParaRadianos(posicao[ANGULO])); 
+		}else if (id == GIRAR){
+			posicao[ANGULO] = ((posicao[ANGULO]+value)< 0)? (posicao[ANGULO]+ 360 + value) : posicao[ANGULO]+value;
+			posicao[ANGULO] = (posicao[ANGULO]>360) ? posicao[ANGULO] - 360 : posicao[ANGULO] ;
+		}
+	}
+
 	void GiraEmGraus(float angulo)
 	{
 		ocupado.giro = true;
+		angulo = (abs(angulo)>=360) ? (abs(angulo)-360)*(angulo/abs(angulo)) : angulo;
 		SendFloatUno(GIRA, angulo - (float(CORRECAO_GIRO)));
+		//cout<<"girei angulo = "<< angulo<<endl;
 		while(ocupado.giro && ros::ok()){		
 			ros::spinOnce();
 		}
@@ -537,12 +582,14 @@ void Delay(double time)
 	{
 		distancia_integracao = 0.0;
 		SendVel(vel,vel);
-		SendVel(vel,vel);
+		//SendVel(vel,vel);
+		//SendVel(vel,vel);
+		//cout<<"andei dist = "<< distancia << endl;
 		while(distancia_integracao < distancia && ros::ok())
 		{
 			ros::spinOnce();		
 		}
-		distancia = (vel > 0) ? distancia_integracao : -distancia_integracao;
+		distancia = (vel > 0) ? distancia : -distancia;
 		SendVel(0,0);
 		SendFloatUno(TRAVAR,0);
 		atualizaLocalizacao(ANDAR, distancia);
@@ -569,7 +616,7 @@ void Delay(double time)
 			ros::spinOnce();	
 		}
 	}
-/*-----------------EM CENTIMETROS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!-----------------------*/
+/*----------------------------EM CENTIMETROS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!-----------------------*/
 /*----------------------------------------mapeamento-----------------------------------------------*/
 	vector<int> posicaoPraMatriz(int x, int y)
 	{
@@ -603,6 +650,222 @@ void Delay(double time)
 		return casaMatrix;
 	}
 
+	bool ehPraPassarNaPorta()
+	{
+		return ((noAtual + SequenciaDeNosParaSeguir[0] == 46) || (noAtual + SequenciaDeNosParaSeguir[0] == 48))? true : false;
+	}
+
+	int checaAnguloComTolerancia()
+	{
+		if(posicao[ANGULO]<TOLERANCIA_ANGULO && posicao[ANGULO]>(360-TOLERANCIA_ANGULO))
+			return EIXO_XPOSITIVO;
+		else if(posicao[ANGULO]<TOLERANCIA_ANGULO+180 && posicao[ANGULO]>(180-TOLERANCIA_ANGULO))
+			return EIXO_XNEGATIVO;
+		else if(posicao[ANGULO]<TOLERANCIA_ANGULO+180 && posicao[ANGULO]>(180-TOLERANCIA_ANGULO)) 
+			return	EIXO_YPOSITIVO;
+		else if(posicao[ANGULO]<TOLERANCIA_ANGULO+270 && posicao[ANGULO]>(270-TOLERANCIA_ANGULO))
+			return EIXO_YNEGATIVO;
+		else
+			return PERDIDO_BRODER;	
+	}
+
+	void andaDevagarChecandoPortaAteAcabarOVao(bool praFrente,int sensorParaChecar, bool comecandoNaParede)
+	{
+		if (comecandoNaParede)
+		{
+			if(praFrente)
+			{		
+				while(ultrassom[sensorParaChecar].valor > VALOR_VAO){
+					andaComIntegracao(PASSINHO, VELOCIDADE_BAIXA);
+				}
+				andaComIntegracao(AJUSTE_POS_ACHAR_PORTA,-VELOCIDADE_BAIXA);
+			}else
+			{
+				while(ultrassom[sensorParaChecar].valor > VALOR_VAO){
+					andaComIntegracao(PASSINHO, -VELOCIDADE_BAIXA);
+				}
+				andaComIntegracao(AJUSTE_POS_ACHAR_PORTA,VELOCIDADE_BAIXA);
+			}
+		}else
+		{		
+			if(praFrente)
+			{		
+				while(ultrassom[sensorParaChecar].valor < VALOR_VAO)
+				{
+					andaComIntegracao(PASSINHO, VELOCIDADE_BAIXA);
+				}
+				andaComIntegracao(AJUSTE_POS_ACHAR_PORTA,-VELOCIDADE_BAIXA);				
+			}else
+			{
+				while(ultrassom[sensorParaChecar].valor < VALOR_VAO){
+					andaComIntegracao(PASSINHO, -VELOCIDADE_BAIXA);
+				}
+				andaComIntegracao(AJUSTE_POS_ACHAR_PORTA,VELOCIDADE_BAIXA);
+			}
+		}		
+	}
+
+	void rotinaPassarNaPorta()
+	{
+		switch(noAtual)
+		{
+			case 20:
+				switch(checaAnguloComTolerancia())
+				{
+					case EIXO_XPOSITIVO:
+						andaDevagarChecandoPortaAteAcabarOVao(true, LADO_R, false);
+						GiraEmGraus(90);						
+						break;
+					case EIXO_XNEGATIVO:
+						andaDevagarChecandoPortaAteAcabarOVao(false, LADO_L, true);
+						GiraEmGraus(90);
+						break;
+					case EIXO_YPOSITIVO:
+						GiraEmGraus(90);
+						andaDevagarChecandoPortaAteAcabarOVao(true, LADO_R, false);
+						GiraEmGraus(90);
+						break;
+					case EIXO_YNEGATIVO:
+						GiraEmGraus(-90);
+						andaDevagarChecandoPortaAteAcabarOVao(true, LADO_R, false);						
+						GiraEmGraus(90);
+						break;
+				}
+			case 21:
+				switch(checaAnguloComTolerancia())
+				{
+					case EIXO_XPOSITIVO:
+						andaDevagarChecandoPortaAteAcabarOVao(false, LADO_R, true);
+						GiraEmGraus(-90);
+						break;
+					case EIXO_XNEGATIVO:
+						andaDevagarChecandoPortaAteAcabarOVao(true, LADO_L, false);
+						GiraEmGraus(90);
+						break;
+					case EIXO_YPOSITIVO:
+						GiraEmGraus(-90);
+						andaDevagarChecandoPortaAteAcabarOVao(true, LADO_L, false);
+						GiraEmGraus(90);
+						break;
+					case EIXO_YNEGATIVO:
+						GiraEmGraus(90);
+						andaDevagarChecandoPortaAteAcabarOVao(true, LADO_L, false);
+						GiraEmGraus(90);
+						break;
+				}
+				break;
+			case 26:
+				switch(checaAnguloComTolerancia())
+				{
+					case EIXO_XPOSITIVO:
+						andaDevagarChecandoPortaAteAcabarOVao(true, LADO_L, false);
+						GiraEmGraus(90);
+						break;
+					case EIXO_XNEGATIVO:
+						andaDevagarChecandoPortaAteAcabarOVao(false, LADO_R, true);
+						GiraEmGraus(-90);
+						break;
+					case EIXO_YPOSITIVO:
+						GiraEmGraus(90);
+						andaDevagarChecandoPortaAteAcabarOVao(true, LADO_L, false);
+						GiraEmGraus(90);
+						break;
+					case EIXO_YNEGATIVO:
+						GiraEmGraus(-90);
+						andaDevagarChecandoPortaAteAcabarOVao(true, LADO_L, false);
+						GiraEmGraus(90);
+						break;
+				}
+				break;
+			case 27:
+				switch(checaAnguloComTolerancia())
+				{
+					case EIXO_XPOSITIVO:
+						andaDevagarChecandoPortaAteAcabarOVao(false, LADO_L, true);
+						GiraEmGraus(90);
+						break;
+					case EIXO_XNEGATIVO:
+						andaDevagarChecandoPortaAteAcabarOVao(true, LADO_R, false);
+						GiraEmGraus(-90);
+						break;
+					case EIXO_YPOSITIVO:
+						GiraEmGraus(-90);
+						andaDevagarChecandoPortaAteAcabarOVao(true, LADO_R, false);
+						GiraEmGraus(-90);
+						break;
+					case EIXO_YNEGATIVO:
+						GiraEmGraus(90);
+						andaDevagarChecandoPortaAteAcabarOVao(true, LADO_R, false);
+						GiraEmGraus(-90);
+						break;
+				}
+				break;
+		}
+	}
+
+	void AndaDeNoAtualParaObjetivo()
+	{
+		while(SequenciaDeNosParaSeguir.size()>0)
+		{
+			
+			//cout<<" Atual No="<<noAtual<<endl;
+			//cout<<" No objetivo ="<<SequenciaDeNosParaSeguir[0]<<endl;
+			if (ehPraPassarNaPorta())
+				rotinaPassarNaPorta();
+			else{	
+				int angulo = AnguloQuePrecisaPraGirar(SequenciaDeNosParaSeguir[0]);
+				if (abs(angulo) >= TOLERANCIA_ANGULO)
+				{
+					GiraEmGraus(angulo);
+				}
+				andaComIntegracao(PASSO_LOCOMOCAO,VELOCIDADE_NORMAL);
+				/*
+				int j=0;
+				while(j++<3)
+					cout<<"\t pos = "<<posicao[j-1];
+				
+				cout<<endl;
+				cout<<endl;
+				*/
+				noAtual = SequenciaDeNosParaSeguir[0];
+				SequenciaDeNosParaSeguir.erase(SequenciaDeNosParaSeguir.begin());
+			}
+		}
+	}
+
+	int AnguloQuePrecisaPraGirar(int noObjetivo)
+	{
+		vector<int> NoObjetivoNaMatriz(2);
+		vector<int> NoAtualNaMatriz(2);
+		NoObjetivoNaMatriz = deCasaNoVetorParaIJ(noObjetivo);
+		NoAtualNaMatriz = deCasaNoVetorParaIJ(noAtual);
+		if(EhNoEixoX(noAtual, noObjetivo))
+		{
+			if (GrafoMapa[NoObjetivoNaMatriz[I]][NoObjetivoNaMatriz[J]].centro[X] > GrafoMapa[NoAtualNaMatriz[I]][NoAtualNaMatriz[J]].centro[X]){ // seo no objetivo esta mais no x do que o atual
+				return (posicao[ANGULO]>180)? (360-posicao[ANGULO]) : -posicao[ANGULO];
+			}
+			else {
+				return (posicao[ANGULO]>180)? -(posicao[ANGULO]-180) : (180-posicao[ANGULO]);
+			}
+		}else
+		{	
+			if (GrafoMapa[NoObjetivoNaMatriz[I]][NoObjetivoNaMatriz[J]].centro[Y] > GrafoMapa[NoAtualNaMatriz[I]][NoAtualNaMatriz[J]].centro[Y]){ // seo no objetivo esta mais no x do que o atual
+				return ( (posicao[ANGULO]>90) && (posicao[ANGULO]<270) )? (270-posicao[ANGULO]) : -(posicao[ANGULO]+90);
+			}else{ 
+				return ((posicao[ANGULO]>90) && (posicao[ANGULO]<=270))? -(posicao[ANGULO]-90) : (450-posicao[ANGULO]);
+			}
+		}
+	}
+
+	bool EhNoEixoX(int no1, int no2)
+	{
+		vector<int> Mat1 = deCasaNoVetorParaIJ(no1);
+		vector<int> Mat2 = deCasaNoVetorParaIJ(no2);
+		float disty, distx;  
+		disty = abs(GrafoMapa[Mat1[I]][Mat1[J]].centro[Y] - GrafoMapa[Mat2[I]][Mat2[J]].centro[Y]);
+		distx = abs(GrafoMapa[Mat1[I]][Mat1[J]].centro[X] - GrafoMapa[Mat2[I]][Mat2[J]].centro[X]);  
+        return (distx>disty) ? true : false;
+	}
 	void NoDoMapa::adicionaAdjacente(int casaNo, int peso)
 	{
 		Vertice temp;
@@ -738,8 +1001,9 @@ void Delay(double time)
 		}
 
 		UltimaSequencia.insert(UltimaSequencia.begin(),*u);
-		for (int i = 1; i < UltimaSequencia.size(); ++i)
+		for (int i = 1; i < UltimaSequencia.size(); ++i){
 		    SequenciaDeNosParaSeguir.push_back(UltimaSequencia[i].NumeroDoNo);
+		}
 	}
 
 	vector<float> AnaliseLugarDaVaca(float x1, float y1, float x2, float y2, float theta)
@@ -829,51 +1093,18 @@ void Delay(double time)
 		}
 	}
 
-	void atualizaLocalizacao(int id, float value)
-	{
-		if (id == ANDAR){
-			posicao[X] += value * cos(DeGrausParaRadianos(posicao[ANGULO]));
-			posicao[Y] += value * sin(DeGrausParaRadianos(posicao[ANGULO])); 
-		}else if (id == GIRAR)		posicao[ANGULO] += value;			
-	}
-/*-------------------------------------------------------------------------------------------------*/
-/*void preencheMatriz()
-{
-	for (int i = 0; i < LINHAS_MAPA; ++i)
-	{
-		for (int j = 0; j < COLUNAS_MAPA; ++j)
-		{
-			for (int k = 0; k < 2; ++k)
-			{
-				if(k==0)	mapa[i][j][k] = 0;
-				else if ((j == 0  || j == COLUNAS_MAPA-1) && k == 1)		mapa[i][j][k] = 10;
-				else if (i == 0 || i == LINHAS_MAPA-1)	mapa[i][j][k] = 5;
-				else if (((i == COLUNAS_MAPA/2 || i == COLUNAS_MAPA/2) || (i == COLUNAS_MAPA/2+1 || i == COLUNAS_MAPA/2+1)) && k == 1)		mapa[i][j][k] = 7;
-			}
-		}
-	}
-	
-	for (int k = 0; k < 2; ++k)	
-	{
-		for (int i = 0; i < LINHAS_MAPA; ++i)
-		{
-			for (int j = 0; j < COLUNAS_MAPA; ++j)	std::cout << std::setfill('0') << std::setw(2) << mapa[i][j][k] << " ";
-			cout<<endl;
-		}
-		cout<<endl;	
-	}
-}*/
 
 void inicializarVariaveis()
 {
 	ocupado.giro = false;
 	fill(toque.begin(), toque.end(), true);
 	ocupado.garraGeral = false;
-	ladosQuadrado[X] = 300/(COLUNAS_MAPA);
-	ladosQuadrado[Y] = 400/(LINHAS_MAPA);
+	ladosQuadrado[X] = LADO_X_J_DA_ARENA/(COLUNAS_MAPA);
+	ladosQuadrado[Y] = LADO_Y_I_DA_ARENA/(LINHAS_MAPA);
 	vector<float> aux(2);
 	aux = matrizPraPosicao(CASA_INICIAL_I-1,CASA_INICIAL_J-1);
 	posicao[X] = aux[X];	posicao[Y] = aux[Y];
+	posicao[ANGULO] = 0.0;
 	//preencheMatriz();
 	distancia_integracao = 0;
 	if(criaGrafoComPesos());
@@ -884,39 +1115,28 @@ void printSensor(int id)
 {
 	if (id == 0)
 	{
-		cout << endl <<"us "<<endl;
+		//cout << endl <<"us "<<endl;
 		for (int i = 0; i < QUANTIDADE_SENSOR_US; ++i)
 		{
 			cout << ultrassom[i].valor <<" ";
 		}
 	}else
 	{
-		cout << endl <<"toque "<<endl;
+		//cout << endl <<"toque "<<endl;
 		for (int i = 0; i < QUANTIDADE_SENSOR_TOQUE; ++i)
 		{
 			cout << toque[i] << " ";
 		}
-		cout << endl;
+		//cout << endl;
 	}
 }
 
-
 void algoritmo()
 {
-	/*double t0 = ros::Time::now().toSec();
-	buscaMelhorCaminho(deIJparaCasaNoVetor(0,2),7,4);
-	double t1 = ros::Time::now().toSec();
-	for (int i = 0; i < SequenciaDeNosParaSeguir.size(); ++i)
-		cout<<SequenciaDeNosParaSeguir[i]<<"\t";
-
-	cout<<endl<<"tempo de busca= " << t1-t0<<endl;
-	Delay(3);*/
-	//andaComIntegracao(50.0,0.5);
-	//GiraEmGraus(90);
-	//SendFloatMega(100,distancia_integracao);
-	//Delay(30);
-	printSensor(0);
-	printSensor(1);
+	Delay(3);
+	buscaMelhorCaminho(noAtual,4,5);	
+	AndaDeNoAtualParaObjetivo();
+	Delay(5);
 }
 
 int main(int argc, char **argv)
@@ -925,7 +1145,7 @@ int main(int argc, char **argv)
 	ros::NodeHandle nh;
 	initROS(nh);
 	inicializarVariaveis();
-	//Delay(5);
+	Delay(3);
 	ros::Rate loop_rate(10);
 	while (ros::ok())
 	{
