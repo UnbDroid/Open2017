@@ -3,16 +3,17 @@
 
 #include <NewPing.h>
 
+  #define FRENTE_R 0
+  #define FRENTE_L 3
 
-#define FRENTE_R 0
-#define FRENTE_L 1
-#define TRAS_R 2
-#define TRAS_L 3
-#define LADO_R 4
-#define LADO_L 5
-#define CIMA_R 6
-#define CIMA_L 7
+  #define TRAS_R 2
+  #define TRAS_L 5
 
+  #define LADO_R 4
+  #define LADO_L 7
+
+  #define CIMA_R 1
+  #define CIMA_L 6
 
 #define NUM_IDEN_US 100
 

@@ -8,7 +8,8 @@
 #define DEBUG_INICIO_GIRO 9999
 #define ACABOU_GIRO 1
 #define ANGULO_ATUAL 2 
-
+ #define CORRECAO_GIRO 6
+ 
 bool gDir;
 bool InicioDoGiro;
 bool STATE = true;
@@ -92,6 +93,7 @@ void Turn(){
     attachInterrupt(digitalPinToInterrupt(encoder1PinA), doEncoder1A, CHANGE);
     STATE = 1;
     InicioDoGiro = 1;
+    //graus = 0;
     sendInt32(ACABOU_GIRO,0);
   }
 }
