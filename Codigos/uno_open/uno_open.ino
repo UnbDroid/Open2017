@@ -38,8 +38,13 @@ void messageFloat32Cb( const arduino_msgs::StampedFloat32& r_float32_msg)
   }else if(r_float32_msg.id == TRAVAR){
       travar();
   }else if(r_float32_msg.id == GIRA){
-     STATE = 0;
-     graus = r_float32_msg.data;      
+     if(r_float32_msg.data>0.2){
+         STATE = 0;
+        graus = r_float32_msg.data-CORRECAO_GIRO;
+     }else if(r_float32_msg.data<-0.2){
+         STATE = 0;
+        graus = r_float32_msg.data+CORRECAO_GIRO;  
+     }    
   }
 }
 
