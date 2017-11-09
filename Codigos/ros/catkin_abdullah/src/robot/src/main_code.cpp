@@ -305,7 +305,14 @@
 
 /*--------------------------------------definicoes da VISAO---------------------------------------*/
 	#define NUM_IDEN_VISION 500
+	#define VIS_X1 1
+	#define VIS_Z1 2
+	#define VIS_X2 3
+	#define VIS_Z2 4
+	#define VIS_ERR 5
+	#define VIS_NOTFOUND 6
 	double cow_pos_x1, cow_pos_x2, cow_pos_z1, cow_pos_z2, cow_pos_err;
+	bool foundCow = 0;
 /*------------------------------------------------------------------------------------------------*/
 
 class Ocupacao{
@@ -428,32 +435,35 @@ void Delay(double time)
 
 	void messageVisFloat64Cb( const arduino_msgs::StampedFloat64& vis_float64_msg)
 	{
-		if(vis_float64_msg.id == NUM_IDEN_VISION + 1)
+		if(vis_float64_msg.id == NUM_IDEN_VISION + VIS_X1)
 		{
 			//cout << "Got x1: ";
 			cow_pos_x1 = vis_float64_msg.data;
 			//cout << vis_float64_msg.data;
 			//cout << "\n";
-		} else if(vis_float64_msg.id == NUM_IDEN_VISION + 2) {
+		} else if(vis_float64_msg.id == NUM_IDEN_VISION + VIS_Z1) {
 			//cout << "Got z1: ";
 			cow_pos_z1 = vis_float64_msg.data;
 			//cout << vis_float64_msg.data;
 			//cout << "\n";
-		} else if(vis_float64_msg.id == NUM_IDEN_VISION + 3) {
+		} else if(vis_float64_msg.id == NUM_IDEN_VISION + VIS_X2) {
 			//cout << "Got x2: ";
 			cow_pos_x2 = vis_float64_msg.data;
 			//cout << vis_float64_msg.data;
 			//cout << "\n";
-		} else if(vis_float64_msg.id == NUM_IDEN_VISION + 4) {
+		} else if(vis_float64_msg.id == NUM_IDEN_VISION + VIS_Z2) {
 			//cout << "Got z2: ";
 			cow_pos_z2 = vis_float64_msg.data;
 			//cout << vis_float64_msg.data;
 			//cout << "\n";
-		} else if(vis_float64_msg.id == NUM_IDEN_VISION + 5) {
+		} else if(vis_float64_msg.id == NUM_IDEN_VISION + VIS_ERR) {
 			//cout << "Got error value: ";
 			cow_pos_err = vis_float64_msg.data;
+			foundCow = 1;
 			//cout << vis_float64_msg.data;
 			//cout << "\n";
+		} else if(vis_float64_msg.id == NUM_IDEN_VISION + VIS_NOTFOUND) {
+			foundCow = 0;
 		}
 	}
 /*-------------------------------------------------------------------------------------------------*/
@@ -1181,6 +1191,63 @@ void Delay(double time)
 		}
 	}
 
+bool AproxComCam()
+{
+	bool dirvaca;
+	float dist1, dist2;
+	SendIntVision(NUM_IDEN_VISION, 0);
+	Delay(1000);
+	float xmed_vaca = (cow_pos_x2 + cow_pos_x1)/2;
+	float zmed_vaca = (cow_pos_z2 + cow_pos_z1)/2;
+	float ang_vaca = atan2(cow_pos_z2 - cow_pos_z1, cow_pos_x2 - cow_pos_x1) - 90; // ângulo da vaca em relação ao eixo Z
+	float ang_robovaca = atan2(zmed_vaca, xmed_vaca) - 90; // ângulo do centroide da vaca em relação ao eixo Z
+	float dist_centro_vaca = sqrt(pow(xmed_vaca, 2) + pow(zmed_vaca, 2));
+	if(xmed_vaca > 0)
+	{
+		dirvaca = 1;
+		GiraEmGraus(-90);
+	} else {
+		dirvaca = 0;
+		GiraEmGraus(90);
+	}
+	dist1 = abs(xmed_vaca);
+	andaRetoDistVelIntegrando(dist1, VELOCIDADE_NORMAL);
+	if(xmed_vaca > 0)
+	{
+		GiraEmGraus(90);
+	} else {
+		GiraEmGraus(-90);
+	}
+	SendIntVision(NUM_IDEN_VISION, 0);
+	Delay(1000);
+	xmed_vaca = (cow_pos_x2 + cow_pos_x1)/2;
+	zmed_vaca = (cow_pos_z2 + cow_pos_z1)/2;
+	ang_vaca = atan2(cow_pos_z2 - cow_pos_z1, cow_pos_x2 - cow_pos_x1) - 90; // ângulo da vaca em relação ao eixo Z
+	ang_robovaca = atan2(zmed_vaca, xmed_vaca) - 90; // ângulo do centroide da vaca em relação ao eixo Z
+	dist_centro_vaca = sqrt(pow(xmed_vaca, 2) + pow(zmed_vaca, 2));
+
+	dist2 = zmed_vaca - 30;
+	andaRetoDistVelIntegrando(dist2, VELOCIDADE_NORMAL);
+	if(ultrassom[CIMA_R].valor < 40) {
+		return 1;
+	} else {
+		andaRetoDistVelIntegrando(dist2, -VELOCIDADE_NORMAL);
+		if(dirvaca == 1)
+		{
+			GiraEmGraus(-90);
+		} else {
+			GiraEmGraus(90);
+		}
+		andaRetoDistVelIntegrando(dist1, -VELOCIDADE_NORMAL);
+		if(dirvaca == 1)
+		{
+			GiraEmGraus(90);
+		} else {
+			GiraEmGraus(-90);
+		}
+		return 0;
+	}
+}
 
 void inicializarVariaveis()
 {
