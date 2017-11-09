@@ -4,9 +4,14 @@
 #include "toque.h"
 #include "GarraOpen.h"
 
-#define MAMADOR 1
-#define GARRA 2
-#define SENSORES 3
+
+//"ESTADOS" que a estrategia pode mandar para o mega
+#define GARRA_DENTRO 1  //MOVE A GARRA PARA ORDENHA
+#define GARRA_FORA 2 //TIRA GARRA DA ORDENHA
+#define SENSORES 3 
+#define DESPEJA 4 //MOVE GARRA PARA DESPEJAR 
+#define PREPARA_COPO 5 //MOVE GARRA PARA POSICAO MAIS BAIXA COM ATUADOR ABERTO PARA ENTRADA OU SAIDA DE COPO
+#define MAMADOR 6 //DEVE FECHAR O MAMADOR E MOVER O MOTOR DC
 
 int STATE;
 GarraOpen Garra;
@@ -80,7 +85,7 @@ void setup()
 {
   initializeROS();
   startSENSORTOQUE();
-  //Garra.setupGarra();
+  //Garra.setupGarra(); //OBSERVAÇÃO!!!!!!!!!!!!!!!! PODE HAVER LOOP INFINITO AQUI SE A GARRA NAO TOCAR NOS SENSORES DE FIM DE CURSO
   start_TASKS();
   STATE = SENSORES;
 }
@@ -89,10 +94,19 @@ void loop()
 {
   switch(STATE)
   {
-      case MAMADOR:
+      case GARRA_DENTRO: //Move a garra para posição de ordenha
+          //Garra.segueTrajetoria(0);
           break;
-      case GARRA:
-          
+      case GARRA_FORA //Move a garra para fora da posição de ordenha, para despejar ou devolver
+          //Garra.segueTrajetoria(1);
+          break;
+      case DESPEJA: //Move a garra para despejar
+          //Garra.despeja();
+          break;
+      case PREPARA_COPO: //Move a garra para pegar ou devolver o copo, obs: Atuador fica aberto
+          //Garra.pega();
+          break;
+      case MAMADOR: //Função para ordenhar a vaca
           break;
       case SENSORES:
           runner.execute();

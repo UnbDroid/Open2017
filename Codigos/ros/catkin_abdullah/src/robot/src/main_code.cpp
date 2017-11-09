@@ -264,6 +264,23 @@
 /*------------------------------------------------------------------------------------------------*/
 
 /*-------------------------------------------Garra------------------------------------------------*/
+	#define QUANTIDADE_MOTORES_GARRA 1
+
+	#define MOTOR_PASSO_X 0 //MOVE MOTOR NO EIXO X PARA SE ALINHAR
+	#define ANDA_ROBO 1  //MANDA ROBO IR PARA FRENTE PARA PEGAR COPO
+	#define ACABOU_GARRA 2 //INFORMA QUE ACABOU MOVIMENTAÇÃO
+
+	#define ANGULO_TANQUE 3 //ANGULO DO ROBO AO TANQUE
+	#define DISTANCIA_TANQUE 4 //DISTANCIA DO ROBO AO TANQUE
+
+	#define DISTANCIA_AVANÇO_ROBO 20
+
+	#define TANQUE 10
+	#define GARRA 20
+
+	#define NUM_IDEN_VISAO 600
+
+/*
 	#define QUANTIDADE_MOTORES_GARRA 5
 	
 	#define MOTOR_PASSO_X 0 
@@ -283,6 +300,7 @@
 	#define PEGA_COPO 10
 	#define DESCARREGA_COPO 20 
 	#define DEVOLVE_COPO 30
+*/
 /*------------------------------------------------------------------------------------------------*/
 
 /*--------------------------------------definicoes da VISAO---------------------------------------*/

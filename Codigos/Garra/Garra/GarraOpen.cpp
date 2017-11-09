@@ -84,7 +84,7 @@ void GarraOpen::iniciaY (int pin_stp, int pin_dir, int pin_rst, int pin_slp, int
 
 void GarraOpen::zeraGarra()
 {
-  //digitalWrite(dirY, ORIGEMY);
+  digitalWrite(dirY, ORIGEMY);
   digitalWrite(dirX, ORIGEMX);
 
   //Acelera
@@ -246,13 +246,13 @@ void GarraOpen::moveX (int novaPos)
   for (int i = 1; i <= 1 + qtdPasso / 5; i++) {
     if (!(digitalRead (inicioCursoX) || !digitalRead (fimCursoX))) { //Se chegou a um limite
       if (dir != ORIGEMX && !digitalRead (fimCursoX)) { //Se movimento era positivo
-        Serial.println("fim");
+        //Serial.println("fim");
         passoAtualX =  tempPasso + i; //Adiciona quantidade andada
         break;  //Para movimentação
       }
       else if (dir == ORIGEMX  && !(digitalRead (inicioCursoX))) {  //Se movimento era negativo
         passoAtualX =  0; //Subtratai quantidade andada
-        Serial.println("inicioCursoX");
+        //Serial.println("inicioCursoX");
         break;  //Para movimentação
       }
     }
@@ -270,12 +270,12 @@ void GarraOpen::moveX (int novaPos)
       if (!(digitalRead (inicioCursoX) || !digitalRead (fimCursoX))) { //Se chegou a um limite
         if (dir != ORIGEMX && !digitalRead (fimCursoX)) { //Se movimento era positivo
           passoAtualX =  tempPasso + i; //Adiciona quantidade andada
-          Serial.println("fim");
+          //Serial.println("fim");
           break;  //Para movimentação
         }
         else if (dir == ORIGEMX  && !(digitalRead (inicioCursoX))) {  //Se movimento era negativo
           passoAtualX =  0; //Subtratai quantidade andada
-          Serial.println("inicioCursoX");
+          //Serial.println("inicioCursoX");
           break;  //Para movimentação
         }
       }
@@ -292,12 +292,12 @@ void GarraOpen::moveX (int novaPos)
       if (!(digitalRead (inicioCursoX) || !digitalRead (fimCursoX))) { //Se chegou a um limite
         if (dir != ORIGEMX && !digitalRead (fimCursoX)) { //Se movimento era positivo
           passoAtualX =  tempPasso + i; //Adiciona quantidade andada
-          Serial.println("fim");
+          //Serial.println("fim");
           break;  //Para movimentação
         }
         else if (dir == ORIGEMX  && !(digitalRead (inicioCursoX))) {  //Se movimento era negativo
           passoAtualX =  0; //Subtratai quantidade andada
-          Serial.println("inicioCursoX");
+          //Serial.println("inicioCursoX");
           break;  //Para movimentação
         }
       }
@@ -413,18 +413,18 @@ void GarraOpen::segueTrajetoria (bool dir) {
     for (int i = 0; i < 18; i++) {
       switch (posicaoCritica[0][i]) {
         case 0:
-          Serial.print ("x: \t");
-          Serial.println (posicaoCritica[1][i]);
+          //Serial.print ("x: \t");
+          //Serial.println (posicaoCritica[1][i]);
           this->moveX(posicaoCritica[1][i]);
           break;
         case 1:
-          Serial.print ("y: \t");
-          Serial.println (posicaoCritica[1][i]);
+          //Serial.print ("y: \t");
+          //Serial.println (posicaoCritica[1][i]);
           this->moveY(posicaoCritica[1][i]);
           break;
         case 2:
-          Serial.print ("cot: \t");
-          Serial.println (posicaoCritica[1][i]);
+          //Serial.print ("cot: \t");
+          //Serial.println (posicaoCritica[1][i]);
           this->moveCotovelo(posicaoCritica[1][i]);
           break;
         default:
@@ -436,18 +436,18 @@ void GarraOpen::segueTrajetoria (bool dir) {
     for (int i = 17; i >= 0; i--) {
       switch (posicaoCritica[0][i]) {
         case 0:
-          Serial.print ("x: \t");
-          Serial.println (posicaoCritica[1][i]);
+          //Serial.print ("x: \t");
+          //Serial.println (posicaoCritica[1][i]);
           this->moveX(posicaoCritica[1][i]);
           break;
         case 1:
-          Serial.print ("y: \t");
-          Serial.println (posicaoCritica[1][i]);
+          //Serial.print ("y: \t");
+          //Serial.println (posicaoCritica[1][i]);
           this->moveY(posicaoCritica[1][i]);
           break;
         case 2:
-          Serial.print ("cot: \t");
-          Serial.println (posicaoCritica[1][i]);
+          //Serial.print ("cot: \t");
+          //Serial.println (posicaoCritica[1][i]);
           this->moveCotovelo(posicaoCritica[1][i]);
           break;
         default:

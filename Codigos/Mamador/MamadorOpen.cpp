@@ -1,8 +1,8 @@
 #include "MamadorOpen.h"
 
 
-#define ORIGEMDir 0
-#define ORIGEMEsq 0
+#define ORIGEMDir 0 //Sentido rotação para o zero, vc definirá o que é zero
+#define ORIGEMEsq 0 //Sentido rotação para o zero, vc definirá o que é zero
 
 
 
@@ -72,15 +72,10 @@ void MamadorOpen::iniciaDir (int pin_stp, int pin_direcao, int pin_rst, int pin_
 void MamadorOpen::pinoMotor (int pin)
 {
   motor = pin;
-  digitalWrite (motor, OUTPUT);
+  pinMode (motor, OUTPUT);
 }
-void MamadorOpen::ordenha(bool estado){
-  if (estado){
-    analogWrite (motor, POTENCIA);
-  }
-  else {
-    digitalWrite (motor, LOW);
-  }
+void MamadorOpen::ordenha (int potencia){
+  analogWrite (motor, potencia);
 }
 void MamadorOpen::posicao(bool direcao)
 {
