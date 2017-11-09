@@ -215,6 +215,10 @@ add_executable(main_node src/main_code.cpp)
 target_link_libraries(main_node ${catkin_LIBRARIES})
 #add_dependencies(first_test robot_generate_messages_cpp)
 
+add_executable(visao_copo_tanque_node src/visaoCopoTanue.cpp)
+target_link_libraries(visao_copo_tanque_node ${catkin_LIBRARIES}  ${OpenCV_LIBRARIES})
+#add_dependencies(first_test robot_generate_messages_cpp)
+
 add_executable(cow_pos_node src/cow_pos.cpp)
 target_link_libraries(cow_pos_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 #add_dependencies(cow_pos robot_generate_messages_cpp)

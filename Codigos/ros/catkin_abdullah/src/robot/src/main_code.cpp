@@ -1,11 +1,8 @@
-	#include <math.h>
+	#include <cmath>
 	#include <vector>
 	#include <iostream>
 	#include <fstream>
 	using namespace std;
-
-
-
 
 	#define PI 3.14159265f
 
@@ -23,8 +20,10 @@
 	ros::Publisher pubN_int32;
 	ros::Publisher pubN_float32;
 
-	ros::Publisher pub_visaoGarra;
-	ros::Subscriber sub_visaoGarra;
+	ros::Publisher pubDEBUG;
+
+	ros::Publisher pub_VCestrategia;
+	ros::Subscriber sub_VCestrategia;
 
 	ros::Subscriber subM_int64;
 	ros::Subscriber subM_float64;
@@ -43,7 +42,7 @@
 	void messageNInt32Cb( const arduino_msgs::StampedInt32& aN_int32_msg);
 	void messageNFloat32Cb( const arduino_msgs::StampedFloat32& aN_float32_msg);
 	void messageVisFloat64Cb( const arduino_msgs::StampedFloat64& vis_float64_msg);
-	void visaoGarraCB(const arduino_msgs::StampedFloat32& visaoGarra_msg);
+	void VCestrategiaCB(const arduino_msgs::StampedFloat32& VCestrategia_msg);
 	void initROS();
 	void SendFloatMega(int id, double data);
 	void SendIntMega(int id, long long int data);	
@@ -64,7 +63,7 @@
 	void preencheMatriz();
 	double rotacoesPorSegundoParaLinear(float dado);
 	bool ehGarra(int id);
-	void SendIntVisaoGarra(int id, long int data);
+	void SendIntVCestrategia(int id, long int data);
 	void andaRetoDistVelIntegrando(float distancia, float vel);
 	void buscaMelhorCaminho(int NoAtual, int iO, int jO);
 	class NoDoMapa;
@@ -80,11 +79,16 @@
 	void rotinaPassarNaPorta();
 	void andaDevagarChecandoPortaAteAcabarOVao(bool praFrente,int sensorParaChecar, bool comecandoNaParede);
 	int checaAnguloComTolerancia();
+	int absolutoINT(int valor);
+	float absolutoFLOAT(float valor);
+	void AndaDeNoAtualParaObjetivo();
 /*------------------------------------------------------------------------------------------------*/
 
 /*-----------------------------------definicoes mapeamento----------------------------------------*/
 	#define CASA_INICIAL_I 4
 	#define CASA_INICIAL_J 0
+
+
 	
 	#define CASA_I_BALDE  
 	#define CASA_J_BALDE 
@@ -93,7 +97,13 @@
 	#define CASA_J_VACA1 
 
 	#define CASA_I_VACA2 
-	#define CASA_J_VACA2 
+	#define CASA_J_VACA2
+
+	#define CASA_I_VACA3 
+	#define CASA_J_VACA3
+
+	int noAtual = 24;
+ 
 
 	//////////////define na hora que a posicao eh escolhida 
 	
@@ -149,8 +159,6 @@
 	#define USDIREITA 1
 	#define USESQUERDA 0
 
-	#define CORRECAO_GIRO 6
-
 	#define GIRA 300
 	#define VEL_REF_DIR 301
 	#define VEL_REF_ESQ 302
@@ -175,19 +183,20 @@
 
 	double velocidadeIntegrada;
 	vector<int> SequenciaDeNosParaSeguir;
-	int noAtual = 42;
 
 	#define X 0
 	#define Y 1
 	#define ANGULO 2
 	
-	
+	#define ANGULO_MINIMO_CORRECAO_GIRO 45
+	#define CORRECAO_GIRO 6
+
 	#define ACABOU_GIRO 1
 	#define ACABOU_ATUAL 2
 	#define DISTANCIA_MIN_AJUSTE_VACA 30.0f
 	
 	#define PASSO_LOCOMOCAO 50
-	#define PASSINHO 2
+	#define PASSINHO 4
 
 	#define ANDAR 1
 	#define GIRAR 2
@@ -196,17 +205,20 @@
 /*---------------------------------definicoes dos sensores US-------------------------------------*/
 
 
+
 	#define FRENTE_R 0
-	#define FRENTE_L 1
+	#define FRENTE_L 3
+
 	#define TRAS_R 2
-	#define TRAS_L 3
+	#define TRAS_L 5
 
 	#define LADO_R 4
-	#define LADO_L 5
-	#define CIMA_R 6
-	#define CIMA_L 7
+	#define LADO_L 7
 
-	#define VALOR_VAO 20
+	#define CIMA_R 1
+	#define CIMA_L 6
+
+	#define VALOR_VAO 25
 
 	#define US_MAX_DIST 200
 
@@ -260,9 +272,9 @@
 	#define MOTOR_SERVO_PULSO 3 
 	#define MOTOR_SERVO_ATUADOR 4
 
-	#define ACABOU_GARRA 5
+	#define ACABOU_GARRA 666
 	
-	#define ANDA_PRA_FRENTE_GARRA 666 
+	#define ANDA_PRA_FRENTE_GARRA 667 
 	
 	#define NUM_IDEN_GARRA 600
 
@@ -275,16 +287,7 @@
 
 /*--------------------------------------definicoes da VISAO---------------------------------------*/
 	#define NUM_IDEN_VISION 500
-	#define VIS_X1 1
-	#define VIS_Z1 2
-	#define VIS_X2 3
-	#define VIS_Z2 4
-	#define VIS_ERR 5
-	#define VIS_NOTFOUND 6
-
 	double cow_pos_x1, cow_pos_x2, cow_pos_z1, cow_pos_z2, cow_pos_err;
-	bool foundCow = 0;
-
 /*------------------------------------------------------------------------------------------------*/
 
 class Ocupacao{
@@ -350,7 +353,7 @@ bool ehGarra(int id)
 {
 	id = id - NUM_IDEN_GARRA;
 	 // o +1 eh para considerar o caso quando a garra acaba o movimento
-	if (id < QUANTIDADE_MOTORES_GARRA+1 && id >= 0)	 return true;
+	if (id < QUANTIDADE_MOTORES_GARRA && id >= 0)	 return true;
 	else	return false;
 }
 
@@ -396,7 +399,7 @@ void Delay(double time)
 		}else if (ehToque(aM_int64_msg.id)) 
 			toque[aM_int64_msg.id - NUM_IDEN_TOQUE] = aM_int64_msg.data;
 		else if (ehGarra(aM_int64_msg.id)){
-			SendIntVisaoGarra(aM_int64_msg.id,aM_int64_msg.data);
+			SendIntVCestrategia(aM_int64_msg.id,aM_int64_msg.data);
 		}
 	}
 
@@ -417,57 +420,47 @@ void Delay(double time)
 		//o 100 é para mudar de metros apra centimetros (medida que a gente usa no codigo)
 	}
 
-	void visaoGarraCB(const arduino_msgs::StampedFloat32& visaoGarra_msg)
+	void VCestrategiaCB(const arduino_msgs::StampedInt32& VCestrategia_msg)
 	{
-		if (ehGarra(visaoGarra_msg.id)){
-			ocupado.garraGeral = (visaoGarra_msg.id == ACABOU_GARRA + NUM_IDEN_GARRA) ? false : true;	
-			SendIntMega(visaoGarra_msg.id, visaoGarra_msg.data);
+		if (ehGarra(VCestrategia_msg.id)){
+			SendIntMega(VCestrategia_msg.id, VCestrategia_msg.data);
 		}
-		else if(visaoGarra_msg.id == ANDA_PRA_FRENTE_GARRA){
-			andaRetoDistVelIntegrando(visaoGarra_msg.data, VELOCIDADE_COPO);
+		else if(VCestrategia_msg.id == ANDA_PRA_FRENTE_GARRA){
+			andaRetoDistVelIntegrando(VCestrategia_msg.data, VELOCIDADE_COPO);
+		}else if (VCestrategia_msg.id == ACABOU_GARRA)
+		{
+			ocupado.garraGeral = false;
 		}
 	}
 
 	void messageVisFloat64Cb( const arduino_msgs::StampedFloat64& vis_float64_msg)
 	{
-		if(vis_float64_msg.id == NUM_IDEN_VISION + VIS_X1)
+		if(vis_float64_msg.id == NUM_IDEN_VISION + 1)
 		{
 			//cout << "Got x1: ";
 			cow_pos_x1 = vis_float64_msg.data;
-			foundCow = 1;
 			//cout << vis_float64_msg.data;
 			//cout << "\n";
-		} else if(vis_float64_msg.id == NUM_IDEN_VISION + VIS_Z1) {
+		} else if(vis_float64_msg.id == NUM_IDEN_VISION + 2) {
 			//cout << "Got z1: ";
 			cow_pos_z1 = vis_float64_msg.data;
-			foundCow = 1;
 			//cout << vis_float64_msg.data;
 			//cout << "\n";
-		} else if(vis_float64_msg.id == NUM_IDEN_VISION + VIS_X2) {
+		} else if(vis_float64_msg.id == NUM_IDEN_VISION + 3) {
 			//cout << "Got x2: ";
 			cow_pos_x2 = vis_float64_msg.data;
-			foundCow = 1;
 			//cout << vis_float64_msg.data;
 			//cout << "\n";
-		} else if(vis_float64_msg.id == NUM_IDEN_VISION + VIS_Z2) {
+		} else if(vis_float64_msg.id == NUM_IDEN_VISION + 4) {
 			//cout << "Got z2: ";
 			cow_pos_z2 = vis_float64_msg.data;
-			foundCow = 1;
 			//cout << vis_float64_msg.data;
 			//cout << "\n";
-		} else if(vis_float64_msg.id == NUM_IDEN_VISION + VIS_ERR) {
+		} else if(vis_float64_msg.id == NUM_IDEN_VISION + 5) {
 			//cout << "Got error value: ";
 			cow_pos_err = vis_float64_msg.data;
-			foundCow = 1;
 			//cout << vis_float64_msg.data;
 			//cout << "\n";
-		} else if(vis_float64_msg.id == NUM_IDEN_VISION + VIS_NOTFOUND) {
-			cow_pos_x1 = 0;
-			cow_pos_z1 = 0;
-			cow_pos_x2 = 0;
-			cow_pos_z2 = 0;
-			cow_pos_err = 999;
-			foundCow = 0;
 		}
 	}
 /*-------------------------------------------------------------------------------------------------*/
@@ -484,9 +477,10 @@ void Delay(double time)
 		pubN_float32 = nh.advertise<arduino_msgs::StampedFloat32>("raspberryN_float32", 1000);
 		subN_int32 = nh.subscribe("arduinoN_int32", 1000, messageNInt32Cb);
 		subN_float32 = nh.subscribe("arduinoN_float32", 1000, messageNFloat32Cb);
-		
-		pub_visaoGarra = nh.advertise<arduino_msgs::StampedInt32>("estrategiaGarra", 1000); 
-		sub_visaoGarra = nh.subscribe("visaoGarra", 1000, visaoGarraCB);
+		pubDEBUG = nh.advertise<arduino_msgs::StampedFloat32>("debug", 1000);
+
+		pub_VCestrategia = nh.advertise<arduino_msgs::StampedInt32>("estrategiaVCT", 1000); 
+		sub_VCestrategia = nh.subscribe("VCestrategia", 1000, VCestrategiaCB);
 
 		pubVis_int32 = nh.advertise<arduino_msgs::StampedInt32>("Vision_int32", 1000); 
 		subVis_float64 = nh.subscribe("Vision_float64", 1000, messageVisFloat64Cb);
@@ -500,7 +494,13 @@ void Delay(double time)
 		float64_msg.data = data;
 		pubM_float64.publish(float64_msg);
 	}
-
+	void SendDebug(int id, float data)
+	{
+		arduino_msgs::StampedFloat32 float32_msg;
+		float32_msg.id = id;
+		float32_msg.data = data;
+		pubDEBUG.publish(float32_msg);
+	}
 
 	void SendIntMega(int id, long long int data)
 	{    
@@ -510,12 +510,12 @@ void Delay(double time)
 		pubM_int64.publish(int64_msg);
 	}
 
-	void SendIntVisaoGarra(int id, long int data)
+	void SendIntVCestrategia(int id, long int data)
 	{    
 		arduino_msgs::StampedInt32 int32_msg;
 		int32_msg.id = id;
 		int32_msg.data = data;
-		pub_visaoGarra.publish(int32_msg);
+		pub_VCestrategia.publish(int32_msg);
 	}
 
 
@@ -579,11 +579,24 @@ void Delay(double time)
 
 	void GiraEmGraus(float angulo)
 	{
-		ocupado.giro = true;
-		angulo = (abs(angulo)>=360) ? (abs(angulo)-360)*(angulo/abs(angulo)) : angulo;
-		SendFloatUno(GIRA, angulo - (float(CORRECAO_GIRO)));
-		//cout<<"girei angulo = "<< angulo<<endl;
-		while(ocupado.giro && ros::ok()){		
+		
+		SendDebug(0, angulo);
+		if (angulo >= 359.8)
+		{
+			angulo = angulo - 360;
+		}else if(angulo <= -359.8)
+		{
+			angulo = angulo + 360;
+		}
+
+		SendDebug(1, angulo);
+		if (angulo>0.2 || angulo<-0.2)
+		{
+			ocupado.giro = true;
+		}
+		SendFloatUno(GIRA,angulo);
+		while(ocupado.giro && ros::ok()){	
+			SendDebug(8, 0);	
 			ros::spinOnce();
 		}
 		atualizaLocalizacao(GIRAR, angulo);
@@ -592,7 +605,7 @@ void Delay(double time)
 	void andaRetoDistVelTempo(float dist, float vel)
 	{
 		double tempo=0;
-		tempo = dist*2.682871209/100*abs(vel); /// de rotacoes por segundo para metros por segundo
+		tempo = dist*2.682871209/100*absolutoFLOAT(vel); /// de rotacoes por segundo para metros por segundo
 		dist = (vel > 0) ? dist : -dist;
 		SendVel(vel, vel);
 		SendVel(vel, vel);
@@ -626,13 +639,13 @@ void Delay(double time)
 		switch(estado)
 		{
 			case PEGA_COPO:
-				SendIntVisaoGarra(NUM_IDEN_GARRA+PEGA_COPO, estado/10);
+				SendIntVCestrategia(NUM_IDEN_GARRA+PEGA_COPO, estado/10);
 				break;
 			case DESCARREGA_COPO:
-				SendIntVisaoGarra(NUM_IDEN_GARRA+DESCARREGA_COPO, estado/10);
+				SendIntVCestrategia(NUM_IDEN_GARRA+DESCARREGA_COPO, estado/10);
 				break;
 			case DEVOLVE_COPO:
-				SendIntVisaoGarra(NUM_IDEN_GARRA+DEVOLVE_COPO, estado/10);
+				SendIntVCestrategia(NUM_IDEN_GARRA+DEVOLVE_COPO, estado/10);
 				break;
 		}
 		while(ocupado.garraGeral && ros::ok())
@@ -679,34 +692,83 @@ void Delay(double time)
 		return ((noAtual + SequenciaDeNosParaSeguir[0] == 46) || (noAtual + SequenciaDeNosParaSeguir[0] == 48))? true : false;
 	}
 
+	void VaiNoCopo()
+	{
+		buscaMelhorCaminho(noAtual, CASA_I_MESA_PEGAR,CASA_J_MESA_PEGAR);
+		AndaDeNoAtualParaObjetivo();
+		int eixoAtual = checaAnguloComTolerancia(); 
+		if (noAtual == 29 || noAtual == 24)
+		{
+			switch(eixoAtual)
+			{
+				case EIXO_XPOSITIVO:
+					GiraEmGraus(90);
+					break;
+				case EIXO_XNEGATIVO:
+					GiraEmGraus(-90);
+					break;
+				case EIXO_YPOSITIVO:
+					GiraEmGraus(180);
+					break;
+				case EIXO_YNEGATIVO: 
+					break;
+			}
+		}else if(noAtual == 23 || noAtual == 18)
+		{	switch(eixoAtual)
+			{
+				case EIXO_XPOSITIVO:
+					GiraEmGraus(-90);
+					break;
+				case EIXO_XNEGATIVO:
+					GiraEmGraus(90);
+					break;
+				case EIXO_YPOSITIVO:
+					break;
+				case EIXO_YNEGATIVO: 
+					GiraEmGraus(180);
+					break;
+			}
+		}
+		while(ultrassom[FRENTE_R].valor > VALOR_VAO && ros::ok()){
+			andaRetoDistVelIntegrando(PASSINHO, VELOCIDADE_BAIXA);
+		}
+		garraEstado(PEGA_COPO);
+
+	}
+
 	int checaAnguloComTolerancia()
 	{
-		if(posicao[ANGULO]<TOLERANCIA_ANGULO && posicao[ANGULO]>(360-TOLERANCIA_ANGULO))
+		if(posicao[ANGULO]<TOLERANCIA_ANGULO || posicao[ANGULO]>(360-TOLERANCIA_ANGULO))
 			return EIXO_XPOSITIVO;
-		else if(posicao[ANGULO]<TOLERANCIA_ANGULO+180 && posicao[ANGULO]>(180-TOLERANCIA_ANGULO))
+		else if(posicao[ANGULO]<TOLERANCIA_ANGULO+180 || posicao[ANGULO]>(180-TOLERANCIA_ANGULO))
 			return EIXO_XNEGATIVO;
-		else if(posicao[ANGULO]<TOLERANCIA_ANGULO+180 && posicao[ANGULO]>(180-TOLERANCIA_ANGULO)) 
+		else if(posicao[ANGULO]<TOLERANCIA_ANGULO+180 || posicao[ANGULO]>(180-TOLERANCIA_ANGULO)) 
 			return	EIXO_YPOSITIVO;
-		else if(posicao[ANGULO]<TOLERANCIA_ANGULO+270 && posicao[ANGULO]>(270-TOLERANCIA_ANGULO))
+		else if(posicao[ANGULO]<TOLERANCIA_ANGULO+270 || posicao[ANGULO]>(270-TOLERANCIA_ANGULO))
 			return EIXO_YNEGATIVO;
 		else
 			return PERDIDO_BRODER;	
 	}
-
 	void andaDevagarChecandoPortaAteAcabarOVao(bool praFrente,int sensorParaChecar, bool comecandoNaParede)
 	{
+		SendDebug(19, noAtual);
 		if (comecandoNaParede)
 		{
 			if(praFrente)
 			{		
-				while(ultrassom[sensorParaChecar].valor > VALOR_VAO){
+				while(ultrassom[sensorParaChecar].valor < VALOR_VAO && ros::ok()){
+					SendDebug(11,0);
 					andaRetoDistVelIntegrando(PASSINHO, VELOCIDADE_BAIXA);
+					ros::spinOnce();
+
 				}
 				andaRetoDistVelIntegrando(AJUSTE_POS_ACHAR_PORTA,-VELOCIDADE_BAIXA);
 			}else
 			{
-				while(ultrassom[sensorParaChecar].valor > VALOR_VAO){
+				while(ultrassom[sensorParaChecar].valor < VALOR_VAO && ros::ok()){
+					SendDebug(12,0);
 					andaRetoDistVelIntegrando(PASSINHO, -VELOCIDADE_BAIXA);
+					ros::spinOnce();
 				}
 				andaRetoDistVelIntegrando(AJUSTE_POS_ACHAR_PORTA,VELOCIDADE_BAIXA);
 			}
@@ -714,15 +776,19 @@ void Delay(double time)
 		{		
 			if(praFrente)
 			{		
-				while(ultrassom[sensorParaChecar].valor < VALOR_VAO)
+				while(ultrassom[sensorParaChecar].valor > VALOR_VAO && ros::ok())
 				{
+					SendDebug(13,0);
 					andaRetoDistVelIntegrando(PASSINHO, VELOCIDADE_BAIXA);
+					ros::spinOnce();
 				}
 				andaRetoDistVelIntegrando(AJUSTE_POS_ACHAR_PORTA,-VELOCIDADE_BAIXA);				
 			}else
 			{
-				while(ultrassom[sensorParaChecar].valor < VALOR_VAO){
+				while(ultrassom[sensorParaChecar].valor > VALOR_VAO && ros::ok()){
+					SendDebug(14,0);
 					andaRetoDistVelIntegrando(PASSINHO, -VELOCIDADE_BAIXA);
+					ros::spinOnce();
 				}
 				andaRetoDistVelIntegrando(AJUSTE_POS_ACHAR_PORTA,VELOCIDADE_BAIXA);
 			}
@@ -779,13 +845,17 @@ void Delay(double time)
 				}
 				break;
 			case 26:
+				SendDebug(19, noAtual);
 				switch(checaAnguloComTolerancia())
 				{
 					case EIXO_XPOSITIVO:
+						SendDebug(20,ultrassom[LADO_L].valor);
 						andaDevagarChecandoPortaAteAcabarOVao(true, LADO_L, false);
 						GiraEmGraus(90);
+
 						break;
 					case EIXO_XNEGATIVO:
+						SendDebug(21,ultrassom[LADO_L].valor);
 						andaDevagarChecandoPortaAteAcabarOVao(false, LADO_R, true);
 						GiraEmGraus(-90);
 						break;
@@ -826,32 +896,33 @@ void Delay(double time)
 				break;
 		}
 	}
-
+	int absolutoINT(int valor)
+	{
+		return (valor>=0)? valor : -valor; 
+	}
+	float absolutoFLOAT(float valor)
+	{
+		return (valor>=0)? valor : -valor;	
+	}
 	void AndaDeNoAtualParaObjetivo()
 	{
-		while(SequenciaDeNosParaSeguir.size()>0)
+		while(SequenciaDeNosParaSeguir.size()>0 && ros::ok() )
 		{
-			
-			//cout<<" Atual No="<<noAtual<<endl;
-			//cout<<" No objetivo ="<<SequenciaDeNosParaSeguir[0]<<endl;
-			if (ehPraPassarNaPorta())
+			SendDebug(0, posicao[ANGULO]);
+			if (ehPraPassarNaPorta()){
+				//SendDebug(5, noAtual);
 				rotinaPassarNaPorta();
+			}
 			else{	
 				int angulo = AnguloQuePrecisaPraGirar(SequenciaDeNosParaSeguir[0]);
-				if (abs(angulo) >= TOLERANCIA_ANGULO)
+				SendDebug(3,angulo);
+				if (absolutoINT(angulo) >= TOLERANCIA_ANGULO)
 				{
 					GiraEmGraus(angulo);
 				}
 				andaRetoDistVelIntegrando(PASSO_LOCOMOCAO,VELOCIDADE_NORMAL);
-				/*
-				int j=0;
-				while(j++<3)
-					cout<<"\t pos = "<<posicao[j-1];
-				
-				cout<<endl;
-				cout<<endl;
-				*/
 				noAtual = SequenciaDeNosParaSeguir[0];
+				SendDebug(6, noAtual);
 				SequenciaDeNosParaSeguir.erase(SequenciaDeNosParaSeguir.begin());
 			}
 		}
@@ -886,8 +957,8 @@ void Delay(double time)
 		vector<int> Mat1 = deCasaNoVetorParaIJ(no1);
 		vector<int> Mat2 = deCasaNoVetorParaIJ(no2);
 		float disty, distx;  
-		disty = abs(GrafoMapa[Mat1[I]][Mat1[J]].centro[Y] - GrafoMapa[Mat2[I]][Mat2[J]].centro[Y]);
-		distx = abs(GrafoMapa[Mat1[I]][Mat1[J]].centro[X] - GrafoMapa[Mat2[I]][Mat2[J]].centro[X]);  
+		disty = absolutoFLOAT(GrafoMapa[Mat1[I]][Mat1[J]].centro[Y] - GrafoMapa[Mat2[I]][Mat2[J]].centro[Y]);
+		distx = absolutoFLOAT(GrafoMapa[Mat1[I]][Mat1[J]].centro[X] - GrafoMapa[Mat2[I]][Mat2[J]].centro[X]);  
         return (distx>disty) ? true : false;
 	}
 	void NoDoMapa::adicionaAdjacente(int casaNo, int peso)
@@ -1077,7 +1148,7 @@ void Delay(double time)
 				GiraEmGraus(-90);
 			} else {
 				GiraEmGraus(90);
-				dist = abs(xmed_vaca) + 10;
+				dist = absolutoFLOAT(xmed_vaca) + 10;
 				andaRetoDistVelIntegrando(dist, VELOCIDADE_NORMAL);
 				GiraEmGraus(-90);
 				//atualiza os valores de cow_pos
@@ -1100,7 +1171,7 @@ void Delay(double time)
 				GiraEmGraus(-90);
 			} else {
 				GiraEmGraus(-90);
-				dist = abs(xmed_vaca) + 10;
+				dist = absolutoFLOAT(xmed_vaca) + 10;
 				andaRetoDistVelIntegrando(dist, VELOCIDADE_NORMAL);
 				GiraEmGraus(90);
 				//atualiza os valores de cow_pos
@@ -1139,7 +1210,7 @@ void printSensor(int id)
 {
 	if (id == 0)
 	{
-		//cout << endl <<"us "<<endl;
+		cout << endl <<"us "<<endl;
 		for (int i = 0; i < QUANTIDADE_SENSOR_US; ++i)
 		{
 			cout << ultrassom[i].valor <<" ";
@@ -1158,9 +1229,17 @@ void printSensor(int id)
 void algoritmo()
 {
 	Delay(3);
-	buscaMelhorCaminho(noAtual,4,5);	
+	buscaMelhorCaminho(noAtual,3,5);	
 	AndaDeNoAtualParaObjetivo();
-	Delay(5);
+	//AndaDeNoAtualParaObjetivo();
+	//andaRetoDistVelIntegrando(50,VELOCIDADE_NORMAL);
+	//Delay(50);
+	//printSensor(0);
+	//printf("us frente esquerda = %f \n", ultrassom[FRENTE_L].valor );
+	//printf("us TRas Direita = %f \n", ultrassom[TRAS_R].valor );
+	//printf("us tras  esquerda = %f \n", ultrassom[TRAS_L].valor );
+	//printf("us CIMA direita = %f \n", ultrassom[CIMA_R].valor );
+	//printf("us Cima esquerda = %f \n", ultrassom[CIMA_L].valor );
 }
 
 int main(int argc, char **argv)

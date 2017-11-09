@@ -1,0 +1,218 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <ros/ros.h>
+#include <vector>
+#include "arduino_msgs/StampedInt32.h"
+#include "opencv2/opencv.hpp"
+
+#define ANGULO_TANQUE
+#define DISTANCIA_TANQUE 
+
+using namespace cv;
+using namespace std;
+
+ros::Publisher pubEstrategia_int32;
+
+ros::Subscriber subEstrategia_int32;
+
+bool ocupado;
+bool copoFora (int posGarra, VideoCapture cap);
+bool copoDentro (int posGarra);
+bool identificaCopo (Mat imagem);
+bool andaRobo();
+bool corrigePosGarra (int posicao_garra);
+
+void estrategiaVCTCB(const arduino_msgs::StampedInt32& VCestrategia_msg)
+{
+  int test = VCestrategia_msg.id;
+
+}
+/*
+if id == arduinoacabou
+      ocupado = false
+*/
+void initROS(ros::NodeHandle nh)
+{
+    pubEstrategia_int32 = nh.advertise<arduino_msgs::StampedInt32>("VCestrategia", 1000);
+    subEstrategia_int32 = nh.subscribe("estrategiaVCT", 1000, estrategiaVCTCB);
+}
+/*
+estrutura de loop recomendada
+
+  ros::Rate loop_rate(10);
+  while (ros::ok())
+  {
+    algoritmo();
+    ros::spinOnce();
+    loop_rate.sleep();
+  }
+
+*/
+while(ocupado)
+int main (int argc, char **argv){
+  ros::init(argc, argv, "visao_copo_tanque_node");
+  ros::NodeHandle nh;
+  initROS(nh);
+  
+  //atualizacao de callbacks
+  ros::spinOnce();
+  
+  VideoCapture cap(0);
+  if(!cap.isOpened())  // check if we succeeded
+      return -1;
+  int a = copoFora (350, cap);//250
+
+  //b = copoDentro (296)
+  cap.release();
+  destroyAllWindows();
+}
+
+void SendIntEstrategia(int id, long int data)
+{    
+  arduino_msgs::StampedInt32 int32_msg;
+  int32_msg.id = id;
+  int32_msg.data = data;
+  pubEstrategia_int32.publish(int32_msg);
+}
+
+bool corrigePosGarra (int posicao_garra){
+  return 0;
+}
+bool andaRobo(){
+  return 0;
+}
+
+bool identificaCopo (Mat imagem){
+  Scalar area = sum (imagem);
+  //namedWindow("ide", WND_PROP_OPENGL);
+  //imshow("ide", imagem);
+  printf ("Area = %lf\n", area[0]);
+  if (area[0] > 1.0)
+      return 1;
+  return 0;
+}
+bool copoFora (int posGarra, VideoCapture cap){
+  int pos_real, posicao_garra;
+  pos_real = 0;
+  posicao_garra = posGarra;
+
+  while (true){
+    Mat frame, imgCortada, binDirH;
+
+    //for i in range (0, 19):
+      //retr = cap.grab()
+    //retr, frame = cap.retrieve(retr)
+
+    cap >> frame; // get a new frame from camera
+    imshow("frame2", frame);
+    cvtColor(frame, frame, COLOR_BGR2HSV);
+
+
+    Rect corteDir;
+    corteDir.x = posicao_garra+25; //210
+    corteDir.width  = 80; //290
+    corteDir.y = 420;
+    corteDir.height = 475 - corteDir.y;
+    if ((corteDir.x+corteDir.width)>frame.cols){
+      printf ("Acabou e nao achou\n");
+      return 0;
+    }
+    imgCortada = frame (corteDir);
+    imshow("imgCortada", imgCortada);
+
+    cvtColor(frame , frame, COLOR_HSV2BGR);
+
+
+    vector<Mat> channels2;
+    split(imgCortada,channels2);//Separa canais da imagem
+
+    threshold(channels2[2], binDirH, 230/*60*/,1, THRESH_BINARY);
+    rectangle(frame,Point2f(corteDir.x,corteDir.y),Point2f (corteDir.x+corteDir.width,corteDir.y+corteDir.height),(0,255,0),3,8,0);
+
+    namedWindow("0channels2[0]", WND_PROP_OPENGL);
+    imshow("0channels2[0]", channels2[0]);
+    namedWindow("1channels2[1]", WND_PROP_OPENGL);
+    imshow("1channels2[1]", channels2[1]);
+    namedWindow("2channels2[2]", WND_PROP_OPENGL);
+    imshow("2channels2[2]", channels2[2]);
+    namedWindow("frame", WND_PROP_OPENGL);
+    imshow("frame", frame);
+
+    int copoNaDireita = identificaCopo (binDirH);
+
+    //char = cv2.waitKey(delay);
+    //cv2.namedWindow('imgCopoDireita', cv2.WND_PROP_OPENGL);
+    //cv2.imshow('imgCopoDireita', imgCopoDireita);
+
+    //cv2.namedWindow('Hsvframe', cv2.WINDOW_OPENGL);
+    //cv2.imshow('Hsvframe',dirH);
+
+    namedWindow("thresh1", WINDOW_OPENGL);
+    Mat bin2 = binDirH*255;
+    imshow("thresh1",bin2);
+    waitKey();
+
+    if (copoNaDireita == 0)//# and copoNaEsquerda == 0:
+    {
+      if (posicao_garra == posGarra)
+      {
+        posicao_garra += 35;
+        pos_real += 30;
+        corrigePosGarra (pos_real);
+      }
+      else{
+        pos_real += 5;
+        corrigePosGarra (pos_real);
+        return 1;
+      }
+    }
+    else if (copoNaDireita == 1){
+      posicao_garra += 9;
+      pos_real += 11;
+      corrigePosGarra (pos_real);
+    }
+  }
+  waitKey();
+}
+bool copoDentro (int posGarra, VideoCapture cap){
+    int posicao_garra = posGarra; // open the default camera
+    if(!cap.isOpened())  // check if we succeeded
+        return 0;
+
+    Mat edges;
+    for(;;)
+    {
+        Mat frame, imgCortada, binH;
+        cap >> frame; // get a new frame from camera
+        imshow("frame", frame);
+        cvtColor(frame, frame, COLOR_BGR2HSV);
+
+
+        Rect corte;
+
+        corte.x = posicao_garra-30; //210
+        corte.width  = 60; //290
+        corte.y = 415;
+        corte.height = 450 - corte.y;
+        if ((corte.x+corte.width)>frame.cols){
+          printf ("Acabou\n");
+          return 0;
+        }
+        imgCortada = frame (corte);
+        namedWindow("imgCortada", WND_PROP_OPENGL);
+        imshow("imgCortada", imgCortada);
+
+        vector<Mat> channels2;
+        split(imgCortada,channels2);//Separa canais da imagem
+
+        threshold(channels2[0], binH, 60,1, THRESH_BINARY_INV);
+
+        if (identificaCopo (binH) == 0){
+            return 1;
+        }else{
+      		waitKey();
+        }
+      }
+          //andaRobo ()
+}
