@@ -16,6 +16,7 @@
 #define FOCAL_DIST 602.1197
 #define X_ERROR_MI 0.129152		//The x axis position of the analised line have an error that grows linearly (approximately) with the distance in the z axis
 #define X_ERROR_CONST -0.6332	//Mathematically: error = z1*X_ERROR_MI + X_ERROR_CONSTANT
+#define SQUARE_HEIGHT 8.0
 
 #define NUM_IDEN_VISION 500
 #define VIS_X1 1
@@ -209,7 +210,7 @@ int findCow(){
   //Calcula tempo de execução
   gettimeofday (&tempo2, NULL);
   tempo = (int)(1000000*(tempo2.tv_sec-tempo1.tv_sec)+(tempo2.tv_usec-tempo1.tv_usec));
-  printf ("%d microseg\n%f Hertz\n", tempo, (1000000.0/tempo));
+  //printf ("%d microseg\n%f Hertz\n", tempo, (1000000.0/tempo));
 
   //cout << "WaitKey moment\n";
 
@@ -365,11 +366,13 @@ void CowRect(int, void*)
      largura = norm(vie[k]-vid[k]), altura = norm(vsd[k]-vid[k]);//Calcula largura do retangulo K
 
      //Verifica se o retangulo é branco ou preto
+     pt.x = (vse[k].x + largura/2);
+     pt.y = (vse[k].y + altura/2);
      Vec3b pixel = copiaEqualizada.at<Vec3b>(pt.y, pt.x);
      int cor = pixel[0]+pixel[1]+pixel[2];
      pixel = copiaEqualizada.at<Vec3b>(pt.y, pt.x+largura);
      int cor2 = pixel[0]+pixel[1]+pixel[2];
-     cor>cor2?tipo = 5.5:tipo = 4.5;
+     cor<cor2?tipo = 6.5:tipo = 5.5;
 
      double deltaX = tipo*largura+vsd[k].x;//Calcula largura da vaca, se K for um retangulo da vaca
 
@@ -430,17 +433,17 @@ void CowRect(int, void*)
     int cor2 = pixel[0]+pixel[1]+pixel[2];
     float comparacao;
     Point2f anchor;
-    if (cor>cor2){ //quadrado branco
+    if (cor<cor2){ //quadrado preto
       tipo = 5;
       //comparacao = 3*largura+vsd[marcador].x;
       comparacao = 4*largura+vsd[marcador].x;
-      anchor.x = 4*largura+vsd[marcador].x;
+      anchor.x = 5*largura+vsd[marcador].x;
       anchor.y = vsd[marcador].y;
-    } else { //quadrado preto
+    } else { //quadrado branco
       tipo = 4;
       //comparacao = 3.4*largura+vse[marcador].x;
       comparacao = 3*largura+vsd[marcador].x;
-      anchor.x = 3*largura+vsd[marcador].x;
+      anchor.x = 4*largura+vsd[marcador].x;
       anchor.y = vsd[marcador].y;
     }
 
@@ -607,13 +610,13 @@ void CowRect(int, void*)
 
 void position (float line1size, float line2size, float px1, float px2){
   float xcenter = src.cols/2;
-  z1 = (FOCAL_DIST*10.0)/line1size;
-  z2 = (FOCAL_DIST*10.0)/line2size;
+  z1 = (FOCAL_DIST*SQUARE_HEIGHT)/line1size;
+  z2 = (FOCAL_DIST*SQUARE_HEIGHT)/line2size;
   float X1_CENTER_ERROR = X_ERROR_MI*z1 + X_ERROR_CONST;
   float X2_CENTER_ERROR = X_ERROR_MI*z2 + X_ERROR_CONST;
   x1 = (z1*(px1-xcenter)/FOCAL_DIST)-X1_CENTER_ERROR;
   x2 = (z2*(px2-xcenter)/FOCAL_DIST)-X2_CENTER_ERROR;
-  dist = pow(pow(z1-z2, 2) + pow(x1-x2, 2) , 0.5)+3.0;
+  dist = pow(pow(z1-z2, 2) + pow(x1-x2, 2) , 0.5)/*+3.0*/;
   
   err = abs(dist-40.0)/40.0;
 }
@@ -645,7 +648,7 @@ int main(int argc, char **argv)
   ros::NodeHandle nh;
   rosInit(nh);
   
-  VideoCapture cam(0);
+  VideoCapture cam("/home/bandreghetti/o2.avi");
   if(!cam.isOpened()) {printf("Impossível abrir camera\n"); return -1;}
   //src = imread("/home/pi/catkin_ws/src/robot/src/002.png");
   /*if(src.empty())
@@ -656,52 +659,54 @@ int main(int argc, char **argv)
 
   ros::Rate loop_rate(10);
 
-  while(ros::ok())
+  while(ros::ok() && cam.isOpened())
   {
     cam >> src;
-    imshow("Entrada", src);
-    if(newValPosVaca == 1) // se tem uma nova leitura da posição da vaca
-    {
-    	err = 1;
-    	int cont = 0;
-      float min_err = 9999, min_err_x1 = 9999, min_err_z1 = 9999, min_err_x2 = 9999, min_err_z2 = 9999;
-      while(err > max_error && cont < 10){
-    	    cam >> src;
-        	imshow("Entrada", src);
-    	    findCow();
-    	    if(err < min_err) {
-            min_err = err;
-            min_err_x1 = x1;
-            min_err_z1 = z1;
-            min_err_x2 = x2;
-            min_err_z2 = z2;
-          }
-          cont += 1;
-    	    cout << err;
-    	    cout << "\n";
-    	    waitKey(1);
-    	}
-      if(cont == 10)
+    if(!src.empty()){
+      imshow("Entrada", src);
+      if(newValPosVaca == 1) // se tem uma nova leitura da posição da vaca
       {
-        err = min_err;
-        x1 = min_err_x1;
-        z1 = min_err_z1;
-        x2 = min_err_x2;
-        z2 = min_err_z2;
+        err = 1;
+        int cont = 0;
+        float min_err = 9999, min_err_x1 = 9999, min_err_z1 = 9999, min_err_x2 = 9999, min_err_z2 = 9999;
+        while(err > max_error && cont < 10){
+            cam >> src;
+            imshow("Entrada", src);
+            findCow();
+            if(err < min_err) {
+              min_err = err;
+              min_err_x1 = x1;
+              min_err_z1 = z1;
+              min_err_x2 = x2;
+              min_err_z2 = z2;
+            }
+            cont += 1;
+            cout << err;
+            cout << "\n";
+            waitKey(1);
+        }
+        if(cont == 10)
+        {
+          err = min_err;
+          x1 = min_err_x1;
+          z1 = min_err_z1;
+          x2 = min_err_x2;
+          z2 = min_err_z2;
+        }
+        if(foundCow)
+        {
+          sendPosVaca();
+        } else {
+          sendCowNotFound();
+        }
+        
+        //cout << "Sent cow_pos values\n";
+        newValPosVaca = 0;
       }
-      if(foundCow)
-      {
-        sendPosVaca();
-      } else {
-        sendCowNotFound();
-      }
-      
-      //cout << "Sent cow_pos values\n";
-	    newValPosVaca = 0;
+      waitKey(1);
+      ros::spinOnce();
+      loop_rate.sleep();
     }
-    waitKey(1);
-    ros::spinOnce();
-    loop_rate.sleep();
   }
 
   return 1;
