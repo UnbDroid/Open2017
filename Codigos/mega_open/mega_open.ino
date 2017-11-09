@@ -29,7 +29,23 @@ void messageFloat64Cb( const arduino_msgs::StampedFloat64& r_float64_msg)
 {
 }
 
+void despeja()
+{
+    Garra.moveY(0);
+    Garra.moveCotovelo (COTOVELO_FRENTE);
+    Garra.movePulso (PULSO_BAIXO);
+    Garra.moveY(10);
+    Garra.moveY(0);
+    Garra.movePulso (PULSO_CIMA);
+}
 
+
+void preparaCopo(){
+  Garra.moveY(130);
+  Garra.moveAtuador(ATUADOR_ABRE);
+  Garra.moveCotovelo(COTOVELO_FRENTE);
+  Garra.movePulso(PULSO_CIMA);
+}
 
 void taskUSCallback1()
 {
@@ -97,7 +113,7 @@ void loop()
       case GARRA_DENTRO: //Move a garra para posição de ordenha
           //Garra.segueTrajetoria(0);
           break;
-      case GARRA_FORA //Move a garra para fora da posição de ordenha, para despejar ou devolver
+      case GARRA_FORA: //Move a garra para fora da posição de ordenha, para despejar ou devolver
           //Garra.segueTrajetoria(1);
           break;
       case DESPEJA: //Move a garra para despejar

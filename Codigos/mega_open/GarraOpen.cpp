@@ -2,6 +2,7 @@
 
 //INICIAÇÃO DA GARRA ---------------------------------------------
 
+
 bool GarraOpen::ehGarra(int id)
 {
   id = id - NUM_IDEN_GARRA;
@@ -13,19 +14,19 @@ int GarraOpen::trataGarra(int id, long long int data) {
   switch (id - NUM_IDEN_GARRA)
   {
     case MOTOR_PASSO_X:
-      return (MOTOR_PASSO_X+NUM_IDEN_GARRA)*GarraOpen::moveX(data);
+      //return (MOTOR_PASSO_X+NUM_IDEN_GARRA)*GarraOpen::moveX(data);
       
     case MOTOR_PASSO_Y:
-      return (MOTOR_PASSO_Y+NUM_IDEN_GARRA)*GarraOpen::moveY(data);
+      //return (MOTOR_PASSO_Y+NUM_IDEN_GARRA)*GarraOpen::moveY(data);
       
     case MOTOR_SERVO_COTOVELO:
-      return (MOTOR_SERVO_COTOVELO+NUM_IDEN_GARRA)*GarraOpen::moveCotovelo((data >= 1));
+      //return (MOTOR_SERVO_COTOVELO+NUM_IDEN_GARRA)*GarraOpen::moveCotovelo((data >= 1));
       
     case MOTOR_SERVO_PULSO:
-      return (MOTOR_SERVO_PULSO+NUM_IDEN_GARRA)*GarraOpen::movePulso((data >= 1));
+      //return (MOTOR_SERVO_PULSO+NUM_IDEN_GARRA)*GarraOpen::movePulso((data >= 1));
       
     case MOTOR_SERVO_ATUADOR:
-      return (MOTOR_SERVO_ATUADOR+NUM_IDEN_GARRA)*GarraOpen::moveAtuador((data >= 1));    
+      //return (MOTOR_SERVO_ATUADOR+NUM_IDEN_GARRA)*GarraOpen::moveAtuador((data >= 1));    
     default:    return -1;
   }
 }
@@ -466,23 +467,6 @@ void GarraOpen::segueTrajetoria (bool dir) {
   }
 }
 
-void despeja()
-{
-    moveY(0);
-    moveCotovelo (COTOVELO_FRENTE);
-    movePulso (PULSO_BAIXO);
-    moveY(10);
-    moveY(0);
-    movePulso (PULSO_CIMA);
-}
-
-
-void preparaCopo(){
-  moveY(130);
-  moveAtuador(ATUADOR_ABRE);
-  moveCotovelo(COTOVELO_FRENTE);
-  movePulso(PULSO_CIMA);
-}
 
     
 
