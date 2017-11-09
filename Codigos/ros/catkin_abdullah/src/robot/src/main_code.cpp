@@ -42,7 +42,7 @@
 	void messageNInt32Cb( const arduino_msgs::StampedInt32& aN_int32_msg);
 	void messageNFloat32Cb( const arduino_msgs::StampedFloat32& aN_float32_msg);
 	void messageVisFloat64Cb( const arduino_msgs::StampedFloat64& vis_float64_msg);
-	void VCestrategiaCB(const arduino_msgs::StampedFloat32& VCestrategia_msg);
+	void VCestrategiaCB(const arduino_msgs::StampedInt32& VCestrategia_msg);
 	void initROS();
 	void SendFloatMega(int id, double data);
 	void SendIntMega(int id, long long int data);	
@@ -273,7 +273,7 @@
 	#define ANGULO_TANQUE 3 //ANGULO DO ROBO AO TANQUE
 	#define DISTANCIA_TANQUE 4 //DISTANCIA DO ROBO AO TANQUE
 
-	#define DISTANCIA_AVANÇO_ROBO 20
+	#define DISTANCIA_AVANCO_ROBO 20
 
 	#define TANQUE 10
 	#define GARRA 20
@@ -367,24 +367,8 @@ bool ehToque(int id)
 	else	return false;
 }
 
-bool ehGarra(int id)
-{
-	id = id - NUM_IDEN_GARRA;
-	 // o +1 eh para considerar o caso quando a garra acaba o movimento
-	if (id < QUANTIDADE_MOTORES_GARRA && id >= 0)	 return true;
-	else	return false;
-}
 
 
-/*
-bool verificacaoDado(int tipo, int id)
-{
-	switch(tipo)
-	{
-		case :
-	}
-}
-*/
 void Delay(double time)
 {
     double t1=0, t0=0;
@@ -416,9 +400,8 @@ void Delay(double time)
 		    ultrassom[usPos].vezes_lido++;
 		}else if (ehToque(aM_int64_msg.id)) 
 			toque[aM_int64_msg.id - NUM_IDEN_TOQUE] = aM_int64_msg.data;
-		else if (ehGarra(aM_int64_msg.id)){
-			SendIntVCestrategia(aM_int64_msg.id,aM_int64_msg.data);
-		}
+
+
 	}
 
 
@@ -440,15 +423,7 @@ void Delay(double time)
 
 	void VCestrategiaCB(const arduino_msgs::StampedInt32& VCestrategia_msg)
 	{
-		if (ehGarra(VCestrategia_msg.id)){
-			SendIntMega(VCestrategia_msg.id, VCestrategia_msg.data);
-		}
-		else if(VCestrategia_msg.id == ANDA_PRA_FRENTE_GARRA){
-			andaRetoDistVelIntegrando(VCestrategia_msg.data, VELOCIDADE_COPO);
-		}else if (VCestrategia_msg.id == ACABOU_GARRA)
-		{
-			ocupado.garraGeral = false;
-		}
+
 	}
 
 	void messageVisFloat64Cb( const arduino_msgs::StampedFloat64& vis_float64_msg)
@@ -650,7 +625,7 @@ void Delay(double time)
 		atualizaLocalizacao(ANDAR, distancia);
 	}
 /*-------------------------------------------------------------------------------------------------*/
-
+/*
 	void garraEstado(int estado)
 	{
 		ocupado.garraGeral = true;
@@ -670,7 +645,7 @@ void Delay(double time)
 		{
 			ros::spinOnce();	
 		}
-	}
+	}*/
 /*----------------------------EM CENTIMETROS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!-----------------------*/
 /*----------------------------------------mapeamento-----------------------------------------------*/
 	vector<int> posicaoPraMatriz(int x, int y)
@@ -750,7 +725,7 @@ void Delay(double time)
 		while(ultrassom[FRENTE_R].valor > VALOR_VAO && ros::ok()){
 			andaRetoDistVelIntegrando(PASSINHO, VELOCIDADE_BAIXA);
 		}
-		garraEstado(PEGA_COPO);
+		//garraEstado(PEGA_COPO);
 
 	}
 
@@ -1246,13 +1221,16 @@ void printSensor(int id)
 
 void algoritmo()
 {
-	Delay(3);
-	buscaMelhorCaminho(noAtual,3,5);	
-	AndaDeNoAtualParaObjetivo();
+	//Delay(3);
+	//buscaMelhorCaminho(noAtual,3,5);	
+	//AndaDeNoAtualParaObjetivo();
 	//AndaDeNoAtualParaObjetivo();
 	//andaRetoDistVelIntegrando(50,VELOCIDADE_NORMAL);
 	//Delay(50);
 	//printSensor(0);
+	//printf("us frente direita = %f \n", ultrassom[FRENTE_R].valor );
+	//printf("us lado direito = %f \n", ultrassom[LADO_R].valor );
+	printf("us lado esquerda = %f \n", ultrassom[FRENTE_L].valor );
 	//printf("us frente esquerda = %f \n", ultrassom[FRENTE_L].valor );
 	//printf("us TRas Direita = %f \n", ultrassom[TRAS_R].valor );
 	//printf("us tras  esquerda = %f \n", ultrassom[TRAS_L].valor );
