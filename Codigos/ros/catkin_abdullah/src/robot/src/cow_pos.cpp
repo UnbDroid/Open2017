@@ -16,7 +16,7 @@
 #define FOCAL_DIST 602.1197
 #define X_ERROR_MI 0.129152		//The x axis position of the analised line have an error that grows linearly (approximately) with the distance in the z axis
 #define X_ERROR_CONST -0.6332	//Mathematically: error = z1*X_ERROR_MI + X_ERROR_CONSTANT
-#define SQUARE_HEIGHT 8.0
+#define SQUARE_HEIGHT 7.1
 
 #define NUM_IDEN_VISION 500
 #define VIS_X1 1
@@ -284,7 +284,7 @@ void CowRect(int, void*)
 
         //Razão entre largura e altura do retangulo não pode ser maior que 4 (isto implica
         //que retangulos esbeltos são rejeitados) e retangulos não devem ser muito pequenos
-        if (rl<4&&(line1+line2)>(src.rows+src.cols)/50){
+        if (rl<3&&(line1+line2)>(src.rows+src.cols)/60){
           double pcontours = arcLength(contours_poly[i], 1);//Calcula perimetro do contorno
 
           if (pcontours<3*(line1+line2)){//Se perimetro do contorno for menor que 300% do perimetro do retangulo
@@ -352,8 +352,10 @@ void CowRect(int, void*)
 
    int marcador, max = 0;
    float m, a, largura, altura, ysup, mediaMi, mmax, tipo;
+   float window_top, window_left, window_bot, window_right;
+   Point2f best_window_vse, best_window_vsd, best_window_vie, best_window_vid;
    Point2f pt;
-
+   vector<Point2f> window[4];
    /*
    Para cada retangulo encontrado, verifica se ele é o retangulo superior a esquerda da lateral da vaca
    para tal cria um caixa como se fosse a vaca e conta quantos retangulos tem dentro o que tiver mais
@@ -372,7 +374,7 @@ void CowRect(int, void*)
      int cor = pixel[0]+pixel[1]+pixel[2];
      pixel = copiaEqualizada.at<Vec3b>(pt.y, pt.x+largura);
      int cor2 = pixel[0]+pixel[1]+pixel[2];
-     cor<cor2?tipo = 6.5:tipo = 5.5;
+     cor<cor2?tipo = 8:tipo = 7;
 
      double deltaX = tipo*largura+vsd[k].x;//Calcula largura da vaca, se K for um retangulo da vaca
 
@@ -391,10 +393,17 @@ void CowRect(int, void*)
          ysup = m*vsd[l].x+a;
 
          //Verifica retangulo L pertence a vaca, considerando a hipotese que o retangulo K é da vaca
-         if (vsd[l].x>=vsd[k].x //Se retangulo l esta a direita de k
-           &&vsd[l].x<deltaX   //E dentro da largura da vaca
-           &&vsd[l].y>ysup-10  //E se retangulo l esta dentro da altura maxima da vaca
-           &&vsd[l].y<ysup+1.3*altura){ //E se retangulo l esta dentro da altura minima da vaca
+         window_right = deltaX;
+         window_left = vsd[k].x;
+         //window_top = ysup-10;
+         //window_bot = ysup+1.3*altura;
+         window_top = vsd[k].y-20;
+         window_bot = vsd[k].y+1.5*altura;
+
+         if (vsd[l].x>=window_left //Se retangulo l esta a direita de k
+           &&vsd[l].x<window_right   //E dentro da largura da vaca
+           &&vsd[l].y>window_top  //E se retangulo l esta dentro da altura maxima da vaca
+           &&vsd[l].y<window_bot){ //E se retangulo l esta dentro da altura minima da vaca
 
              double m2 = (vse[l].y-vsd[l].y)/(vse[l].x-vsd[l].x);//Calcula coeficiente angular do retangulo L
              mediaMi += m2; //Soma coeficientes angular do retangulo L e K
@@ -410,6 +419,14 @@ void CowRect(int, void*)
        mmax = mediaMi/(hit[k]); //Coeficiente angular medio
        marcador = k; //Retangulo com mais pontos;
        max = hit[k]; //Pontos do melhor canditado;
+       best_window_vse.x = window_left;
+       best_window_vse.y = window_top;
+       best_window_vsd.x = window_right;
+       best_window_vsd.y = window_top;
+       best_window_vid.x = window_right;
+       best_window_vid.y = window_bot;
+       best_window_vie.x = window_left;
+       best_window_vie.y = window_bot;
      }
    }
 
@@ -437,14 +454,16 @@ void CowRect(int, void*)
       tipo = 5;
       //comparacao = 3*largura+vsd[marcador].x;
       comparacao = 4*largura+vsd[marcador].x;
-      anchor.x = 5*largura+vsd[marcador].x;
-      anchor.y = vsd[marcador].y;
+      anchor.x = 6*largura+vsd[marcador].x;
+      //anchor.y = vsd[marcador].y;
+      anchor.y = m*vsd[marcador].x+a;
     } else { //quadrado branco
       tipo = 4;
       //comparacao = 3.4*largura+vse[marcador].x;
       comparacao = 3*largura+vsd[marcador].x;
-      anchor.x = 4*largura+vsd[marcador].x;
-      anchor.y = vsd[marcador].y;
+      anchor.x = 4.5*largura+vsd[marcador].x;
+      //anchor.y = vsd[marcador].y;
+      anchor.y = m*vsd[marcador].x+a;
     }
 
     double deltaX = tipo*largura+vsd[marcador].x;
@@ -461,6 +480,12 @@ void CowRect(int, void*)
     supsumxsq = pow(vsd[marcador].x, 2);
     supsumy = vsd[marcador].y;
     supsumxy = vsd[marcador].x * vsd[marcador].y;
+
+    line(tempBlackWhite, best_window_vse, best_window_vsd, Scalar (250, 55, 25), 1, 8);
+    line(tempBlackWhite, best_window_vsd, best_window_vid, Scalar (250, 55, 25), 1, 8);
+    line(tempBlackWhite, best_window_vid, best_window_vie, Scalar (250, 55, 25), 1, 8);
+    line(tempBlackWhite, best_window_vie, best_window_vse, Scalar (250, 55, 25), 1, 8);
+    circle(tempBlackWhite, anchor, 3, Scalar (250, 55, 25));
 
     for (int l = 0; l<retangulosVaca.size() ; l++){
         line(tempBlackWhite, vsd[retangulosVaca[l]], vie[retangulosVaca[l]], Scalar (55, 250, 25), 1, 8 );
@@ -583,7 +608,7 @@ void CowRect(int, void*)
     position(pt2linha1.y-pt1linha1.y, pt2linha2.y-pt1linha2.y, pt1linha1.x,pt1linha2.x);
     matfinal = tempBlackWhite.clone();
     foundCow = 1;
-    imshow("Desenho", matfinal);
+    //imshow("Desenho", matfinal);
   } else {
     foundCow = 0;
   }
@@ -663,7 +688,7 @@ int main(int argc, char **argv)
   {
     cam >> src;
     if(!src.empty()){
-      imshow("Entrada", src);
+      //imshow("Entrada", src);
       if(newValPosVaca == 1) // se tem uma nova leitura da posição da vaca
       {
         err = 1;
@@ -671,7 +696,7 @@ int main(int argc, char **argv)
         float min_err = 9999, min_err_x1 = 9999, min_err_z1 = 9999, min_err_x2 = 9999, min_err_z2 = 9999;
         while(err > max_error && cont < 10){
             cam >> src;
-            imshow("Entrada", src);
+            //imshow("Entrada", src);
             findCow();
             if(err < min_err) {
               min_err = err;
