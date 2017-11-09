@@ -1,6 +1,7 @@
 #include "roscom.h"
 #include "contvel.h"
 #include "giro.h"
+#include "camera.h"
 
 void messageInt32Cb( const arduino_msgs::StampedInt32& r_int32_msg)
 {   
@@ -50,6 +51,7 @@ void messageFloat32Cb( const arduino_msgs::StampedFloat32& r_float32_msg)
 void setup()
 {
   initializeROS();
+  InitCamera();
   StartVelCont();
   inicializaGiro();  
   STATE = 1;
@@ -59,11 +61,13 @@ void setup()
 
 void loop()
 {
-  if(STATE){
+  if(STATE == 1){
     UpdateVel();
   }
-  else{
+  else if(STATE == 0){
     Turn();
+  } else if(STATE == 2){
+    ChangeCamState();
   }
   nh.spinOnce();
 }

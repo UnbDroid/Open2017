@@ -12,7 +12,7 @@
  
 bool gDir;
 bool InicioDoGiro;
-bool STATE = true;
+int STATE = 1;
 double graus;
 
 MPU6050 mpu;

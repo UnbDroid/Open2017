@@ -5,10 +5,17 @@
 
 void GarraOpen::iniciaServos(int pinCot, int pinPul, int pinAtu)
 {
-  //cotovelo.attach(pinCot);
-  //pulso.attach(pinPul);
+  cotovelo.attach(pinCot);
+  pulso.attach(pinPul);
   atuador.attach(pinAtu);
+
+  cotovelo.write (COTOVELO_FRENTE);
+  pulso.write (PULSO_CIMA);
   atuador.write (ATUADOR_ABRE);
+
+  posPulso = PULSO_CIMA;
+  posAtuador = ATUADOR_ABRE;
+  posCotovelo = COTOVELO_FRENTE;
 }
 
 void GarraOpen::iniciaX (int pin_stp, int pin_dir, int pin_rst, int pin_slp, int pin_ena, int pin_m0, int pin_m1, int pin_m2, int fim_curso, int inicio_curso)
@@ -86,31 +93,40 @@ void GarraOpen::zeraGarra()
   for (int i = 1; i <= 10; i++) {
     if (!digitalRead (inicioCursoX)) {
       xZerado = LOW;
+      Serial.println ("x tocou");
     }
-    //if (!digitalRead (inicioCursoY))
-    //  yZerado = LOW;
+    if (!digitalRead (inicioCursoY)) {
+      yZerado = LOW;
+      Serial.println ("y tocou");
+    }
     periodo =  round (FREQUENCIA * 15 / i);
+
     digitalWrite(stpX, LOW);
-    //digitalWrite(stpY, LOW);
+    digitalWrite(stpY, LOW);
     delayMicroseconds (periodo);
-    //digitalWrite(stpY, yZerado);
+
+    digitalWrite(stpY, yZerado);
     digitalWrite(stpX, xZerado);
     delayMicroseconds (periodo);
   }
   //Mantem velocidade
-  while (xZerado)//(xZerado&&yZerado)
+  while /*(xZerado)/*/(xZerado || yZerado)
   {
     if (!digitalRead (inicioCursoX)) {
       xZerado = LOW;
+      Serial.println ("x tocou");
     }
-    //if (!digitalRead (inicioCursoY))
-    //  yZerado = LOW;
+    if (!digitalRead (inicioCursoY)) {
+      yZerado = LOW;
+      Serial.println ("y tocou");
+    }
+
     digitalWrite(stpX, LOW);
-    //digitalWrite(stpY, LOW);
+    digitalWrite(stpY, LOW);
     delayMicroseconds (FREQUENCIA * 1.5);
 
     digitalWrite(stpX, xZerado);
-    //digitalWrite(stpY, yZerado);
+    digitalWrite(stpY, yZerado);
     delayMicroseconds (FREQUENCIA * 1.5);
   }
   passoAtualX = 0;
@@ -120,45 +136,65 @@ void GarraOpen::zeraGarra()
   //atuador.write (ATUADOR_ABRE);
   //cotovelo.write (COTOVELO_FRENTE);
 
-  posPulso = false;
-  posAtuador = false;
-  posCotovelo = false;
+
 }
 
 //CONTROLE DOS SERVOS DA GARRA ---------------------------------------------
-void GarraOpen::movePulso(bool novaPos)
+void GarraOpen::movePulso(int novaPos)
 {
-  if (novaPos != posPulso) //Xor(novaPos, posPulso)
+  if (novaPos > posPulso)
   {
-    if (novaPos)
-      pulso.write (PULSO_BAIXO);
-    else
-      pulso.write (PULSO_CIMA);
-
+    for (int i = posPulso; i < novaPos; i++) {
+      pulso.write(i);
+      delay (30);
+    }
   }
+  else
+  {
+    for (int i = posPulso; i > novaPos; i--) {
+      pulso.write(i);
+      delay (30);
+    }
+  }
+  posPulso = novaPos;
 }
 
-void GarraOpen::moveAtuador(bool novaPos)
+void GarraOpen::moveAtuador(int novaPos)
 {
-  if (novaPos !=  posAtuador) //Xor(novaPos, posAtuador)
+  if (novaPos > posAtuador)
   {
-    if (!novaPos)
-      atuador.write (ATUADOR_FECHA);
-    else
-      atuador.write (ATUADOR_ABRE);
-
+    for (int i = posAtuador; i < novaPos; i++) {
+      atuador.write(i);
+      delay (30);
+    }
   }
+  else
+  {
+    for (int i = posAtuador; i > novaPos; i--) {
+      atuador.write(i);
+      delay (30);
+    }
+  }
+  posAtuador = novaPos;
 }
 
-void GarraOpen::moveCotovelo(bool novaPos)
+void GarraOpen::moveCotovelo(int novaPos)
 {
-  if (novaPos ^ posCotovelo) //Xor(novaPos, posCotovelo)
+  if (novaPos > posCotovelo)
   {
-    if (novaPos)
-      cotovelo.write (COTOVELO_TRAS);
-    else
-      cotovelo.write (COTOVELO_FRENTE);
+    for (int i = posCotovelo; i < novaPos; i++) {
+      cotovelo.write(i);
+      delay (30);
+    }
   }
+  else
+  {
+    for (int i = posCotovelo; i > novaPos; i--) {
+      cotovelo.write(i);
+      delay (30);
+    }
+  }
+  posCotovelo = novaPos;
 }
 
 
@@ -167,7 +203,7 @@ void GarraOpen::moveCotovelo(bool novaPos)
 void GarraOpen::passoX()
 {
   digitalWrite(dirX, !ORIGEMX);
-  for (int i = 0; i < 300; i++) {
+  for (int i = 0; i < 3500; i++) {
     digitalWrite(stpX, LOW);     // Pulso nível baixo
     delayMicroseconds (FREQUENCIA);   // MeioPeriodo de X microsegundos
     digitalWrite(stpX, HIGH);    // Pulso nível alto
@@ -178,11 +214,14 @@ void GarraOpen::passoX()
 
 void GarraOpen::passoY()
 {
-  digitalWrite(dirY, !ORIGEMX);
-  digitalWrite(stpY, LOW);     // Pulso nível baixo
-  delayMicroseconds (FREQUENCIA);   // MeioPeriodo de X microsegundos
-  digitalWrite(stpY, HIGH);    // Pulso nível alto
-  delayMicroseconds (FREQUENCIA);
+  digitalWrite(dirY, !ORIGEMY);
+  for (int i = 0; i < 3500; i++) {
+    digitalWrite(dirY, !ORIGEMX);
+    digitalWrite(stpY, LOW);     // Pulso nível baixo
+    delayMicroseconds (FREQUENCIA);   // MeioPeriodo de X microsegundos
+    digitalWrite(stpY, HIGH);    // Pulso nível alto
+    delayMicroseconds (FREQUENCIA);
+  }
 }
 void GarraOpen::moveX (int novaPos)
 {
@@ -193,7 +232,6 @@ void GarraOpen::moveX (int novaPos)
 
   bool dir;
   if (qtdPasso > 0) { //Se movimento positivo
-    Serial.println("aui");
     dir = 1;
   }
   else {  //Se movimento negativo
@@ -205,15 +243,20 @@ void GarraOpen::moveX (int novaPos)
   unsigned long int temp = FREQUENCIA * qtdPasso;
 
   //ACELERAÇÃO----------------------
-  for (int i = 1; i <= 1 + qtdPasso / 3; i++) {
-    if (!(digitalRead (inicioCursoX) && digitalRead (fimCursoX))) { //Se chegou a um limite
-      if (dir)  //Se movimento era positivo
+  for (int i = 1; i <= 1 + qtdPasso / 5; i++) {
+    if (!(digitalRead (inicioCursoX) || !digitalRead (fimCursoX))) { //Se chegou a um limite
+      if (dir != ORIGEMX && !digitalRead (fimCursoX)) { //Se movimento era positivo
+        Serial.println("fim");
         passoAtualX =  tempPasso + i; //Adiciona quantidade andada
-      else      //Se movimento era negativo
-        passoAtualX =  tempPasso - i; //Subtratai quantidade andada
-      break;  //Para movimentação
+        break;  //Para movimentação
+      }
+      else if (dir == ORIGEMX  && !(digitalRead (inicioCursoX))) {  //Se movimento era negativo
+        passoAtualX =  0; //Subtratai quantidade andada
+        Serial.println("inicioCursoX");
+        break;  //Para movimentação
+      }
     }
-    periodo = round (temp / (i * 3)); //Acelera
+    periodo = round (temp / (i * 5)); //Acelera
     //Serial.println(periodo, DEC);
     digitalWrite(stpX, LOW);     // Pulso nível baixo
     delayMicroseconds (periodo); // MeioPeriodo de X microsegundos
@@ -222,15 +265,20 @@ void GarraOpen::moveX (int novaPos)
   }
 
   //VELOCIDADE DE CRUZEIRO-------------
-  for (int i = 1; i <= 1 + qtdPasso / 3; i++) {
-    if (!(digitalRead (inicioCursoX) && digitalRead (fimCursoX))) { //Se chegou a um limite
-      if (i > 1) {  //Se nao foi chegado ao fim do curso na aceleração
-        if (dir)  //Se movimento era positivo
+  for (int i = 1; i <= 1 + 3 * qtdPasso / 5; i++) {
+    if (i > 1) {
+      if (!(digitalRead (inicioCursoX) || !digitalRead (fimCursoX))) { //Se chegou a um limite
+        if (dir != ORIGEMX && !digitalRead (fimCursoX)) { //Se movimento era positivo
           passoAtualX =  tempPasso + i; //Adiciona quantidade andada
-        else      //Se movimento era negativo
-          passoAtualX =  tempPasso - i; //Subtratai quantidade andada
+          Serial.println("fim");
+          break;  //Para movimentação
+        }
+        else if (dir == ORIGEMX  && !(digitalRead (inicioCursoX))) {  //Se movimento era negativo
+          passoAtualX =  0; //Subtratai quantidade andada
+          Serial.println("inicioCursoX");
+          break;  //Para movimentação
+        }
       }
-      break;  //Para movimentação
     }
     digitalWrite(stpX, LOW);        // Pulso nível baixo
     delayMicroseconds (FREQUENCIA); // MeioPeriodo de X microsegundos
@@ -239,15 +287,20 @@ void GarraOpen::moveX (int novaPos)
   }
 
   //DESACELERAÇÃO---------------------
-  for (int i = 1; i <= 1 + qtdPasso / 3; i++) {
+  for (int i = 1; i <= 1 + qtdPasso / 5; i++) {
     if (i > 1) {  //Se nao foi chegado ao fim do curso na aceleração
-      if (!(digitalRead (inicioCursoX) && digitalRead (fimCursoX))) { //Se chegou a um limite
-        if (dir)  //Se movimento era positivo
+      if (!(digitalRead (inicioCursoX) || !digitalRead (fimCursoX))) { //Se chegou a um limite
+        if (dir != ORIGEMX && !digitalRead (fimCursoX)) { //Se movimento era positivo
           passoAtualX =  tempPasso + i; //Adiciona quantidade andada
-        else      //Se movimento era negativo
-          passoAtualX =  tempPasso - i; //Subtratai quantidade andada
+          Serial.println("fim");
+          break;  //Para movimentação
+        }
+        else if (dir == ORIGEMX  && !(digitalRead (inicioCursoX))) {  //Se movimento era negativo
+          passoAtualX =  0; //Subtratai quantidade andada
+          Serial.println("inicioCursoX");
+          break;  //Para movimentação
+        }
       }
-      break;
     }
     periodo = FREQUENCIA * i;     //Desacelera
     //Serial.println(periodo, DEC);
@@ -289,15 +342,18 @@ void GarraOpen::moveY (int novaPos) {
   unsigned long int temp = FREQUENCIA * qtdPasso;
 
   //ACELERAÇÃO----------------------
-  for (int i = 1; i <= 1 + qtdPasso / 3; i++) {
-    if (!(digitalRead (inicioCursoY) || digitalRead (fimCursoY))) { //Se chegou a um limite
-      if (dir)  //Se movimento era positivo
+  for (int i = 1; i <= 1 + qtdPasso / 5; i++) {
+    if (!(digitalRead (inicioCursoY) || !digitalRead (fimCursoY))) { //Se chegou a um limite
+      if (dir != ORIGEMY && digitalRead (fimCursoY)) { //Se movimento era positivo
         passoAtualY =  tempPasso + i; //Adiciona quantidade andada
-      else      //Se movimento era negativo
-        passoAtualY =  tempPasso - i; //Subtratai quantidade andada
-      break;  //Para movimentação
+        break;  //Para movimentação
+      }
+      else if (dir == ORIGEMY && !(digitalRead (inicioCursoY))) {  //Se movimento era negativo
+        passoAtualY =  0; //Subtratai quantidade andada
+        break;  //Para movimentação
+      }
     }
-    periodo = round (temp / (i * 3)); //Acelera
+    periodo = round (temp / (i * 5)); //Acelera
     //Serial.println(periodo, DEC);
     digitalWrite(stpY, LOW);     // Pulso nível baixo
     delayMicroseconds (periodo); // MeioPeriodo de X microsegundos
@@ -306,15 +362,18 @@ void GarraOpen::moveY (int novaPos) {
   }
 
   //VELOCIDADE DE CRUZEIRO-------------
-  for (int i = 1; i <= 1 + qtdPasso / 3; i++) {
-    if (!(digitalRead (inicioCursoY) || digitalRead (fimCursoY))) { //Se chegou a um limite
-      if (i > 1) {  //Se nao foi chegado ao fim do curso na aceleração
-        if (dir)  //Se movimento era positivo
+  for (int i = 1; i <= 1 + 3 * qtdPasso / 5; i++) {
+    if (i > 1) {
+      if (!(digitalRead (inicioCursoY) || !digitalRead (fimCursoY))) { //Se chegou a um limite
+        if (dir != ORIGEMY && digitalRead (fimCursoY)) { //Se movimento era positivo
           passoAtualY =  tempPasso + i; //Adiciona quantidade andada
-        else      //Se movimento era negativo
-          passoAtualY =  tempPasso - i; //Subtratai quantidade andada
+          break;  //Para movimentação
+        }
+        else if (dir == ORIGEMY && !(digitalRead (inicioCursoY))) {  //Se movimento era negativo
+          passoAtualY =  0; //Subtratai quantidade andada
+          break;  //Para movimentação
+        }
       }
-      break;  //Para movimentação
     }
     digitalWrite(stpY, LOW);        // Pulso nível baixo
     delayMicroseconds (FREQUENCIA); // MeioPeriodo de X microsegundos
@@ -323,15 +382,18 @@ void GarraOpen::moveY (int novaPos) {
   }
 
   //DESACELERAÇÃO---------------------
-  for (int i = 1; i <= 1 + qtdPasso / 3; i++) {
+  for (int i = 1; i <= 1 + qtdPasso / 5; i++) {
     if (i > 1) {  //Se nao foi chegado ao fim do curso na aceleração
-      if (!(digitalRead (inicioCursoY) || digitalRead (fimCursoY))) { //Se chegou a um limite
-        if (dir)  //Se movimento era positivo
+      if (!(digitalRead (inicioCursoY) || !digitalRead (fimCursoY))) { //Se chegou a um limite
+        if (dir != ORIGEMY && digitalRead (fimCursoY)) { //Se movimento era positivo
           passoAtualY =  tempPasso + i; //Adiciona quantidade andada
-        else      //Se movimento era negativo
-          passoAtualY =  tempPasso - i; //Subtratai quantidade andada
+          break;  //Para movimentação
+        }
+        else if (dir == ORIGEMY && !(digitalRead (inicioCursoY))) {  //Se movimento era negativo
+          passoAtualY =  0; //Subtratai quantidade andada
+          break;  //Para movimentação
+        }
       }
-      break;
     }
     periodo = FREQUENCIA * i;     //Desacelera
     //Serial.println(periodo, DEC);
@@ -342,7 +404,58 @@ void GarraOpen::moveY (int novaPos) {
   }
 }
 
+void GarraOpen::segueTrajetoria (bool dir) {
 
+  int posicaoCritica[2][18] = {{2, 0, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2},
+    {COTOVELO_FRENTE, 0, 45, 50, 50, 45, 60, 43, 67, 38, 81, 37, 91, 27, 95, 24, 105, COTOVELO_TRAS}
+  };
+  if (dir == 0) {
+    for (int i = 0; i < 18; i++) {
+      switch (posicaoCritica[0][i]) {
+        case 0:
+          Serial.print ("x: \t");
+          Serial.println (posicaoCritica[1][i]);
+          this->moveX(posicaoCritica[1][i]);
+          break;
+        case 1:
+          Serial.print ("y: \t");
+          Serial.println (posicaoCritica[1][i]);
+          this->moveY(posicaoCritica[1][i]);
+          break;
+        case 2:
+          Serial.print ("cot: \t");
+          Serial.println (posicaoCritica[1][i]);
+          this->moveCotovelo(posicaoCritica[1][i]);
+          break;
+        default:
+          break;
+      }
+    }
+  }
+  else {
+    for (int i = 17; i >= 0; i--) {
+      switch (posicaoCritica[0][i]) {
+        case 0:
+          Serial.print ("x: \t");
+          Serial.println (posicaoCritica[1][i]);
+          this->moveX(posicaoCritica[1][i]);
+          break;
+        case 1:
+          Serial.print ("y: \t");
+          Serial.println (posicaoCritica[1][i]);
+          this->moveY(posicaoCritica[1][i]);
+          break;
+        case 2:
+          Serial.print ("cot: \t");
+          Serial.println (posicaoCritica[1][i]);
+          this->moveCotovelo(posicaoCritica[1][i]);
+          break;
+        default:
+          break;
+      }
+    }
+  }
+}
 
 void GarraOpen::seVira (int posx, int posy, bool serCotovelo, bool serPulso, bool serAtuador) {
   //moveY (posy);
