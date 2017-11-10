@@ -87,37 +87,38 @@ void sendPosVaca()
   vis_float64_msg.id = NUM_IDEN_VISION + VIS_X1;
   vis_float64_msg.data = x1;
   pubVis_float64.publish(vis_float64_msg);
-  cout << "Sent x1: ";
+  /*cout << "Sent x1: ";
   cout << x1;
   cout << "\n";
-
+  */
   vis_float64_msg.id = NUM_IDEN_VISION + VIS_Z1;
   vis_float64_msg.data = z1;
   pubVis_float64.publish(vis_float64_msg);
-  cout << "Sent z1: ";
+  /*cout << "Sent z1: ";
   cout << z1;
   cout << "\n";
-
+  */
   vis_float64_msg.id = NUM_IDEN_VISION + VIS_X2;
   vis_float64_msg.data = x2;
   pubVis_float64.publish(vis_float64_msg);
-  cout << "Sent x2: ";
+  /*cout << "Sent x2: ";
   cout << x2;
   cout << "\n";
-
+  */
   vis_float64_msg.id = NUM_IDEN_VISION + VIS_Z2;
   vis_float64_msg.data = z2;
   pubVis_float64.publish(vis_float64_msg);
-  cout << "Sent z2: ";
+  /*cout << "Sent z2: ";
   cout << z2;
   cout << "\n";
-
+  */
   vis_float64_msg.id = NUM_IDEN_VISION + VIS_ERR;
   vis_float64_msg.data = err;
   pubVis_float64.publish(vis_float64_msg);
-  cout << "Sent error value: ";
+  /*cout << "Sent error value: ";
   cout << err;
   cout << "\n\n";
+  */
 }
 
 void sendCowNotFound()
@@ -125,7 +126,7 @@ void sendCowNotFound()
   vis_float64_msg.id = NUM_IDEN_VISION + VIS_NOTFOUND;
   //vis_float64_msg.data = z2;
   pubVis_float64.publish(vis_float64_msg);
-  cout << "Cow not found\n";
+  //cout << "Cow not found\n";
 }
 
 int findCow(){
@@ -284,7 +285,7 @@ void CowRect(int, void*)
 
         //Razão entre largura e altura do retangulo não pode ser maior que 4 (isto implica
         //que retangulos esbeltos são rejeitados) e retangulos não devem ser muito pequenos
-        if (rl<3&&(line1+line2)>(src.rows+src.cols)/60){
+        if (rl<2.5&&(line1+line2)>(src.rows+src.cols)/60){
           double pcontours = arcLength(contours_poly[i], 1);//Calcula perimetro do contorno
 
           if (pcontours<3*(line1+line2)){//Se perimetro do contorno for menor que 300% do perimetro do retangulo
@@ -374,7 +375,7 @@ void CowRect(int, void*)
      int cor = pixel[0]+pixel[1]+pixel[2];
      pixel = copiaEqualizada.at<Vec3b>(pt.y, pt.x+largura);
      int cor2 = pixel[0]+pixel[1]+pixel[2];
-     cor<cor2?tipo = 8:tipo = 7;
+     cor<cor2?tipo = 7.5:tipo = 6.5;
 
      double deltaX = tipo*largura+vsd[k].x;//Calcula largura da vaca, se K for um retangulo da vaca
 
@@ -432,7 +433,7 @@ void CowRect(int, void*)
 
   //Desenha
   Point2f pt2;
-  if(max>4){
+  if(max>8){
     Scalar color = Scalar (rng.uniform(0,255),rng.uniform(0,255),rng.uniform(0,255));
 
     m = (vse[marcador].y-vsd[marcador].y)/(vse[marcador].x-vsd[marcador].x);//Calcula coeficiente angular do retangulo K
@@ -485,7 +486,7 @@ void CowRect(int, void*)
     line(tempBlackWhite, best_window_vsd, best_window_vid, Scalar (250, 55, 25), 1, 8);
     line(tempBlackWhite, best_window_vid, best_window_vie, Scalar (250, 55, 25), 1, 8);
     line(tempBlackWhite, best_window_vie, best_window_vse, Scalar (250, 55, 25), 1, 8);
-    circle(tempBlackWhite, anchor, 3, Scalar (250, 55, 25));
+    circle(tempBlackWhite, anchor, 3, Scalar (250, 155, 25), -1);
 
     for (int l = 0; l<retangulosVaca.size() ; l++){
         line(tempBlackWhite, vsd[retangulosVaca[l]], vie[retangulosVaca[l]], Scalar (55, 250, 25), 1, 8 );
@@ -669,11 +670,11 @@ void savePoints (){
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "find_ros");
+  ros::init(argc, argv, "cow_pos_node");
   ros::NodeHandle nh;
   rosInit(nh);
   
-  VideoCapture cam("/home/bandreghetti/o2.avi");
+  VideoCapture cam(0);
   if(!cam.isOpened()) {printf("Impossível abrir camera\n"); return -1;}
   //src = imread("/home/pi/catkin_ws/src/robot/src/002.png");
   /*if(src.empty())
@@ -706,8 +707,8 @@ int main(int argc, char **argv)
               min_err_z2 = z2;
             }
             cont += 1;
-            cout << err;
-            cout << "\n";
+            //cout << err;
+            //cout << "\n";
             waitKey(1);
         }
         if(cont == 10)
